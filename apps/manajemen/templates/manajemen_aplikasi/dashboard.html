@@ -1,0 +1,219 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Manajemen Permissions & Roles{% endblock %}
+
+{% block extra_css %}
+<style>
+    .quick-action-card {
+        padding: 20px;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        border: 2px solid transparent;
+    }
+    
+    .quick-action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        border-color: var(--primary-color);
+        text-decoration: none;
+    }
+    
+    .quick-action-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .quick-action-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 5px;
+    }
+    
+    .quick-action-desc {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+    
+    .app-permissions {
+        margin-bottom: 15px;
+    }
+    
+    .app-header {
+        padding: 12px 15px;
+        background: var(--light-color);
+        border-radius: 8px;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 8px;
+    }
+    
+    .permission-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        background: #f3f4f6;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        margin: 3px;
+        color: #4b5563;
+    }
+    
+    .role-card {
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 10px;
+    }
+    
+    .role-name {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 5px;
+    }
+    
+    .role-stats {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="card stat-card info">
+            <div class="stat-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="stat-number">{{ total_permissions }}</div>
+            <div class="stat-label">Total Permissions</div>
+        </div>
+        <div class="card stat-card success">
+            <div class="stat-icon">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div class="stat-number">{{ total_roles }}</div>
+            <div class="stat-label">Total Roles</div>
+        </div>
+        <div class="card stat-card warning">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-number">{{ total_users }}</div>
+            <div class="stat-label">Active Users</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mb-4">
+        <h4 class="mb-3"><i class="fas fa-bolt"></i> Quick Actions</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a href="{% url 'manajemen_aplikasi:permission_list' %}" class="quick-action-card">
+                <div class="quick-action-icon text-primary">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="quick-action-title">Manage Permissions</div>
+                <div class="quick-action-desc">View & manage all permissions</div>
+            </a>
+            <a href="{% url 'manajemen_aplikasi:permission_create' %}" class="quick-action-card">
+                <div class="quick-action-icon text-success">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="quick-action-title">Create Permission</div>
+                <div class="quick-action-desc">Add new permission</div>
+            </a>
+            <a href="{% url 'manajemen_aplikasi:role_list' %}" class="quick-action-card">
+                <div class="quick-action-icon text-info">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="quick-action-title">Manage Roles</div>
+                <div class="quick-action-desc">View & manage roles</div>
+            </a>
+            <a href="{% url 'manajemen_aplikasi:role_create' %}" class="quick-action-card">
+                <div class="quick-action-icon text-warning">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="quick-action-title">Create Role</div>
+                <div class="quick-action-desc">Add new role</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Permissions by App -->
+        <div class="lg:col-span-2">
+            <div class="card">
+                <div class="p-6">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-th-list"></i> Permissions by Module
+                    </h5>
+                    
+                    {% for app, perms in permissions_by_app.items %}
+                    <div class="app-permissions">
+                        <div class="app-header">
+                            <i class="fas fa-cube"></i> {{ app|title }} 
+                            <span class="inline-block bg-primary text-white text-xs px-2 py-1 rounded font-medium float-right">{{ perms|length }}</span>
+                        </div>
+                        <div class="permission-list">
+                            {% for perm in perms|slice:":5" %}
+                            <span class="permission-badge">
+                                {{ perm.codename }}
+                            </span>
+                            {% endfor %}
+                            {% if perms|length > 5 %}
+                            <span class="permission-badge">
+                                + {{ perms|length|add:"-5" }} more
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'manajemen_aplikasi:permission_list' %}" class="inline-block bg-primary hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                            <i class="fas fa-list"></i> View All Permissions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles Overview -->
+        <div>
+            <div class="card">
+                <div class="p-6">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-users-cog"></i> Roles Overview
+                    </h5>
+                    
+                    {% for role in roles %}
+                    <div class="role-card">
+                        <div class="role-name">
+                            <i class="fas fa-user-shield"></i> {{ role.name }}
+                        </div>
+                        <div class="role-stats">
+                            <span class="inline-block bg-blue-500 text-white text-xs px-2 py-1 rounded font-medium">{{ role.perm_count }} permissions</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No roles created yet</p>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'manajemen_aplikasi:role_list' %}" class="inline-block bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors w-full">
+                            <i class="fas fa-th-list"></i> Manage Roles
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Hapus Penilaian JPT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="bg-white rounded-xl p-6 shadow-lg mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="bg-red-100 p-3 rounded-lg">
+                    <i class="fas fa-trash text-red-600 text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Hapus Penilaian JPT</h1>
+                    <p class="text-gray-600 mt-1">Konfirmasi penghapusan data penilaian</p>
+                </div>
+            </div>
+            <a href="{% url 'survey:penilaian_list' %}" 
+               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
+                <i class="fas fa-arrow-left"></i>
+                <span>Kembali</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Card -->
+    <div class="bg-white rounded-xl p-6 shadow-lg">
+        <div class="text-center py-8">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Konfirmasi Penghapusan</h3>
+            <p class="text-gray-600 mb-6">
+                Apakah Anda yakin ingin menghapus data penilaian JPT ini?<br>
+                <span class="font-medium text-red-600">Tindakan ini tidak dapat dibatalkan.</span>
+            </p>
+
+            <!-- Object Info -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left max-w-md mx-auto">
+                <h4 class="font-medium text-gray-900 mb-2">Detail Penilaian:</h4>
+                <div class="space-y-1 text-sm text-gray-600">
+                    <div><span class="font-medium">Yang Dinilai:</span> {{ obj.nama_dinilai|default:"N/A" }}</div>
+                    <div><span class="font-medium">Penilai:</span> {{ obj.nama_penilai|default:"N/A" }}</div>
+                    <div><span class="font-medium">Rata-rata Skor:</span> {{ obj.rata_rata|default:"N/A" }}</div>
+                    <div><span class="font-medium">Status:</span> {{ obj.get_status_display|default:"N/A" }}</div>
+                    <div><span class="font-medium">Dibuat:</span> {{ obj.created_at|date:"d M Y H:i"|default:"N/A" }}</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-center space-x-4">
+                <a href="{% url 'survey:penilaian_list' %}" 
+                   class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-times mr-2"></i>
+                    Batal
+                </a>
+                <form method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        <i class="fas fa-trash mr-2"></i>
+                        Hapus
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warning Box -->
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mt-6">
+        <div class="flex items-start space-x-3">
+            <i class="fas fa-exclamation-triangle text-red-500 mt-1"></i>
+            <div class="text-red-800">
+                <h4 class="font-semibold mb-1">Peringatan</h4>
+                <p class="text-sm">
+                    Penghapusan data penilaian JPT akan menghapus semua informasi terkait secara permanen,
+                    termasuk skor penilaian, komentar, dan riwayat perubahan status.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

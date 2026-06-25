@@ -1,0 +1,52 @@
+services:
+  # Django Application
+  survey_pemda_python:
+    build: .
+    container_name: survey_pemda_python_app
+    restart: unless-stopped
+    command: gunicorn core.wsgi:application --config gunicorn.conf.py
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - logs_volume:/app/logs
+    ports:
+      - "8006:8000"
+    environment:
+      - DB_HOST=mysql-main
+      - DB_NAME=survey_pemda_python_db
+      - DB_USER=root
+      - DB_PORT=3306
+      - REDIS_HOST=redis-main
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=5406@Pessel!23#
+      - REDIS_DB=4
+      # Memory and Request Size Limits (for handling large data like 9000+ records)
+      - DJANGO_MAX_REQUEST_SIZE=134217728  # 128MB in bytes
+      - GUNICORN_TIMEOUT=300  # 5 minutes timeout
+      - GUNICORN_WORKERS=4
+      - GUNICORN_WORKER_CLASS=sync
+    deploy:
+      resources:
+        limits:
+          memory: 1G  # Maximum memory limit
+          cpus: '2.0'  # Maximum CPU usage
+        reservations:
+          memory: 512M  # Reserved memory
+          cpus: '1.0'  # Reserved CPU
+    networks:
+      - proxy-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  static_volume:
+  media_volume:
+  logs_volume:
+
+networks:
+  proxy-network:
+    external: true

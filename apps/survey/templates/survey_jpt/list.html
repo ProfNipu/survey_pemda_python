@@ -1,0 +1,83 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Manajemen Penilaian JPT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl p-6 shadow-lg mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="bg-emerald-100 p-3 rounded-lg">
+                    <i class="fas fa-star text-emerald-600 text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Manajemen Penilaian JPT</h1>
+                    <p class="text-gray-600 mt-1">Kelola penilaian untuk Jabatan Pimpinan Tinggi</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'survey:penilaian_report' %}" 
+                   class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Laporan</span>
+                </a>
+                <a href="{% url 'survey:penilaian_create' %}" 
+                   class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
+                    <i class="fas fa-plus"></i>
+                    <span>Tambah Penilaian</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    {% include 'includes/datatable_filters.html' with search_placeholder='Cari nama pegawai, penilai...' %}
+
+    <!-- Bulk Actions -->
+    {% include 'includes/datatable_bulk_actions.html' with entity_name='penilaian JPT' show_delete=True show_export=True %}
+
+    <!-- Loading Overlay -->
+    {% include 'includes/datatable_loading.html' %}
+
+    <!-- Table Container -->
+    <div id="table-container">
+        {% include 'survey_jpt/partials/_table.html' %}
+    </div>
+
+    <!-- Info Box -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+        <div class="flex items-start space-x-3">
+            <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+            <div class="text-sm text-blue-700">
+                <p class="font-medium mb-1">Informasi Penilaian JPT:</p>
+                <ul class="list-disc list-inside space-y-1 text-blue-600">
+                    <li><strong>Draft:</strong> Penilaian masih dalam tahap penyusunan</li>
+                    <li><strong>Submitted:</strong> Penilaian telah disubmit untuk review</li>
+                    <li><strong>Reviewed:</strong> Penilaian sedang dalam proses review</li>
+                    <li><strong>Approved:</strong> Penilaian telah disetujui dan final</li>
+                    <li>Penilaian menggunakan skala 1-5 untuk 6 aspek kompetensi JPT</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize datatable helper
+    const dt = new DatatableHelper({
+        tableId: 'penilaian_jpt_table',
+        pageKey: 'penilaian_list',
+        saveUrl: window.location.href,
+        deleteUrl: '{% url "survey:penilaian_list" %}',
+        entity: 'penilaian_jpt',
+        exportFormats: ['csv'],
+        useToast: true,
+        debug: false
+    });
+    dt.init();
+});
+</script>
+{% endblock %}

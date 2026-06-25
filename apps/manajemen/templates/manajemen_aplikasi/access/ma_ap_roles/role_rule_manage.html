@@ -1,0 +1,388 @@
+{% extends 'base_dashboard.html' %}
+
+{% load permission_tags %}
+
+{% block page_title %}Manage Rules for {{ role.name }}{% endblock %}
+
+{% block content %}
+{% has_permission 'pengaturan' 'permission_role_rule' 'edit' as can_edit_role_rule %}
+{% has_permission 'pengaturan' 'permission_dashboard' 'view' as can_back_dashboard %}
+<div class="mb-6">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+        <i class="fas fa-user-shield mr-2"></i> Manage Rules untuk Role: {{ role.name }}
+    </h2>
+    <p class="text-gray-500">Assign permission rules ke role ini</p>
+</div>
+
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-5xl mx-auto">
+    <div class="bg-gradient-to-br from-primary to-secondary text-white p-5 rounded-xl text-center mb-5">
+        <h3 class="text-2xl font-semibold m-0">
+            <i class="fas fa-check-circle mr-2"></i> {{ selected_count }} Rules Dipilih
+        </h3>
+    </div>
+
+    <form method="post" id="roleRuleForm" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+            <label class="flex items-center text-lg font-semibold text-gray-800">
+                <input id="checkAllModules" type="checkbox"
+                    class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2 mr-3">
+                <span>
+                    <i class="fas fa-check-double mr-2"></i>
+                    Check All Modules
+                </span>
+            </label>
+            <div class="w-full md:w-1/3">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="searchRules"
+                        class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="Cari module, control, atau fungsi...">
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            {% for module_name, rules in rules_by_module.items %}
+            <div class="border-2 border-gray-200 rounded-xl p-5 module-section" data-module="{{ module_name|slugify }}">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b-2 border-primary">
+                    <label class="flex items-center text-lg font-semibold text-primary">
+                        <input type="checkbox"
+                            class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2 mr-3 module-checkbox"
+                            data-module="{{ module_name|slugify }}">
+                        <span><i class="fas fa-th-large mr-2"></i>{{ module_name }}</span>
+                    </label>
+                    <span class="text-sm text-gray-500 font-normal">({{ rules|length }} rules)</span>
+                </div>
+
+                {% regroup rules by control as control_groups %}
+                <div class="space-y-4">
+                    {% for control in control_groups %}
+                    <div class="border border-gray-200 rounded-lg p-4 control-section"
+                        data-module="{{ module_name|slugify }}" data-control="{{ control.grouper.id }}">
+                        <div class="mb-3">
+                            <label class="flex items-center text-gray-800 font-medium">
+                                <input type="checkbox"
+                                    class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2 mr-3 control-checkbox"
+                                    data-module="{{ module_name|slugify }}" data-control="{{ control.grouper.id }}">
+                                <span>{{ control.grouper.label_kontrol }}</span>
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {% for rule in control.list %}
+                            <label
+                                class="flex items-start p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                                <input type="checkbox" name="rules" value="{{ rule.id }}"
+                                    class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2 mt-0.5 mr-3 rule-checkbox"
+                                    data-module="{{ module_name|slugify }}" data-control="{{ control.grouper.id }}" {% if rule.is_selected %}checked{% endif %}>
+                                <div class="flex-1">
+                                    <div class="text-gray-800">
+                                        <span class="font-semibold">{{ rule.control.label_kontrol }}</span> → {{
+                                        rule.function.label_fungsi }}
+                                    </div>
+                                    <code
+                                        class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded mt-1 inline-block">{{ rule.permission_string }}</code>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <i class="fas fa-exclamation-triangle text-amber-600 mr-2"></i>
+                <span class="text-amber-700">Belum ada rules yang bisa di-assign.</span>
+                <a href="{% url 'manajemen_aplikasi:rule_create' %}"
+                    class="text-primary hover:underline font-medium">Buat rules terlebih dahulu</a>.
+            </div>
+            {% endfor %}
+        </div>
+
+        <hr class="my-6 border-gray-200">
+
+        <div class="flex gap-3">
+            {% if can_edit_role_rule %}
+            <button type="submit"
+                class="flex-1 bg-primary hover:bg-primary-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                <i class="fas fa-save mr-2"></i> Simpan Rules
+            </button>
+            {% endif %}
+            <button type="button"
+                class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-colors text-center"
+                data-fallback-url="{% if can_back_dashboard %}{% url 'manajemen_aplikasi:dashboard' %}{% else %}{% url 'dashboard:index' %}{% endif %}"
+                data-can-back="{% if can_back_dashboard %}1{% else %}0{% endif %}"
+                onclick="(function(btn){
+                    try {
+                        var fallback = btn.getAttribute('data-fallback-url') || '/';
+                        var canBack = (btn.getAttribute('data-can-back') === '1');
+                        var ref = document.referrer || '';
+                        if (canBack && window.history.length > 1 && ref && ref !== window.location.href) {
+                            window.history.back();
+                            return;
+                        }
+                        window.location.href = fallback;
+                    } catch (e) {
+                        window.location.href = btn.getAttribute('data-fallback-url') || '/';
+                    }
+                })(this);">
+                <i class="fas fa-times mr-2"></i> Batal
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="mt-5 max-w-5xl mx-auto">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-info-circle mr-2"></i> Tips:
+        </strong>
+        <ul class="mt-2 mb-0 space-y-1 text-blue-700 list-disc list-inside">
+            <li>Pilih rules yang sesuai dengan tanggung jawab role ini</li>
+            <li>User dengan role ini akan mendapat semua permissions yang di-check</li>
+            <li>Gunakan Module sections untuk memilih per kategori</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    (function () {
+        function qs(sel, root) { return (root || document).querySelector(sel); }
+        function qsa(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+
+        const checkAll = qs('#checkAllModules');
+        const moduleBoxes = qsa('.module-checkbox');
+        const controlBoxes = qsa('.control-checkbox');
+        const ruleBoxes = qsa('.rule-checkbox');
+        const searchInput = qs('#searchRules');
+        const form = qs('#roleRuleForm');
+
+        function setChecked(boxes, checked) {
+            boxes.forEach(function (b) { b.checked = checked; });
+        }
+
+        function groupState(boxes) {
+            const total = boxes.length;
+            const checked = boxes.filter(function (b) { return !!b.checked; }).length;
+            return { total, checked, all: total > 0 && checked === total, none: checked === 0, some: checked > 0 && checked < total };
+        }
+
+        function setTriState(box, st) {
+            if (!box) return;
+            if (st.all) {
+                box.checked = true;
+                box.indeterminate = false;
+                return;
+            }
+            if (st.none) {
+                box.checked = false;
+                box.indeterminate = false;
+                return;
+            }
+            box.checked = false;
+            box.indeterminate = true;
+        }
+
+        function syncControl(mod, ctl) {
+            const modRoot = qs('.module-section[data-module="' + mod + '"]');
+            if (!modRoot) return;
+            const ctlBox = qs('.control-checkbox[data-module="' + mod + '"][data-control="' + ctl + '"]', modRoot);
+            const rules = qsa('.rule-checkbox[data-module="' + mod + '"][data-control="' + ctl + '"]', modRoot);
+            setTriState(ctlBox, groupState(rules));
+        }
+
+        function syncModule(mod) {
+            const modRoot = qs('.module-section[data-module="' + mod + '"]');
+            if (!modRoot) return;
+            const modBox = qs('.module-checkbox[data-module="' + mod + '"]');
+            const rules = qsa('.rule-checkbox[data-module="' + mod + '"]', modRoot);
+            setTriState(modBox, groupState(rules));
+        }
+
+        function syncGlobal() {
+            if (!checkAll) return;
+            setTriState(checkAll, groupState(ruleBoxes));
+        }
+
+        function syncAllParents() {
+            // sync all controls
+            controlBoxes.forEach(function (c) {
+                const mod = c.getAttribute('data-module');
+                const ctl = c.getAttribute('data-control');
+                syncControl(mod, ctl);
+            });
+            // sync all modules
+            moduleBoxes.forEach(function (m) {
+                const mod = m.getAttribute('data-module');
+                syncModule(mod);
+            });
+            // sync global
+            syncGlobal();
+        }
+
+        if (checkAll) {
+            checkAll.addEventListener('change', function () {
+                const checked = !!checkAll.checked;
+                checkAll.indeterminate = false;
+                setChecked(ruleBoxes, checked);
+                // children updated, now sync parents
+                syncAllParents();
+            });
+        }
+
+        moduleBoxes.forEach(function (m) {
+            m.addEventListener('change', function () {
+                const mod = m.getAttribute('data-module');
+                const checked = !!m.checked;
+                m.indeterminate = false;
+                const modRoot = qs('.module-section[data-module="' + mod + '"]');
+                if (!modRoot) return;
+                setChecked(qsa('.rule-checkbox[data-module="' + mod + '"]', modRoot), checked);
+                // after changing children, update all related parents
+                // controls within module
+                qsa('.control-checkbox[data-module="' + mod + '"]', modRoot).forEach(function (c) {
+                    const ctl = c.getAttribute('data-control');
+                    syncControl(mod, ctl);
+                });
+                syncModule(mod);
+                syncGlobal();
+            });
+        });
+
+        controlBoxes.forEach(function (c) {
+            c.addEventListener('change', function () {
+                const mod = c.getAttribute('data-module');
+                const ctl = c.getAttribute('data-control');
+                const checked = !!c.checked;
+                c.indeterminate = false;
+                const modRoot = qs('.module-section[data-module="' + mod + '"]');
+                if (!modRoot) return;
+                setChecked(qsa('.rule-checkbox[data-module="' + mod + '"][data-control="' + ctl + '"]', modRoot), checked);
+                syncControl(mod, ctl);
+                syncModule(mod);
+                syncGlobal();
+            });
+        });
+
+        ruleBoxes.forEach(function (r) {
+            r.addEventListener('change', function () {
+                const mod = r.getAttribute('data-module');
+                const ctl = r.getAttribute('data-control');
+                syncControl(mod, ctl);
+                syncModule(mod);
+                syncGlobal();
+            });
+        });
+
+        // initial sync based on pre-checked rules
+        syncAllParents();
+
+        // ----------------------------------------------------
+        // LIVE SEARCH LOGIC
+        // ----------------------------------------------------
+        if (searchInput) {
+            searchInput.addEventListener('input', function (e) {
+                const term = e.target.value.toLowerCase();
+
+                qsa('.module-section').forEach(function (modSec) {
+                    let modHasMatch = false;
+                    const modLabel = qs('.module-checkbox', modSec).parentElement;
+                    const modName = modLabel ? modLabel.textContent.toLowerCase() : '';
+                    const modMatches = modName.includes(term);
+
+                    qsa('.control-section', modSec).forEach(function (ctlSec) {
+                        let ctlHasMatch = false;
+                        const ctlLabel = qs('.control-checkbox', ctlSec).parentElement;
+                        const ctlName = ctlLabel ? ctlLabel.textContent.toLowerCase() : '';
+                        const ctlMatches = ctlName.includes(term);
+
+                        qsa('.rule-checkbox', ctlSec).forEach(function (ruleBox) {
+                            const label = ruleBox.closest('label');
+                            if (!label) return;
+                            const ruleText = label.textContent.toLowerCase();
+
+                            if (modMatches || ctlMatches || ruleText.includes(term)) {
+                                label.style.display = '';
+                                ctlHasMatch = true;
+                                modHasMatch = true;
+                            } else {
+                                label.style.display = 'none';
+                            }
+                        });
+
+                        if (ctlHasMatch || ctlMatches || modMatches) {
+                            ctlSec.style.display = '';
+                            // If only module matched, or only control matched, ensure children are visible
+                            if ((modMatches || ctlMatches) && !ctlHasMatch) {
+                                qsa('.rule-checkbox', ctlSec).forEach(function (ruleBox) {
+                                    ruleBox.closest('label').style.display = '';
+                                });
+                            }
+                        } else {
+                            ctlSec.style.display = 'none';
+                        }
+                    });
+
+                    if (modHasMatch || modMatches) {
+                        modSec.style.display = '';
+                    } else {
+                        modSec.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // ----------------------------------------------------
+        // AJAX SUBMIT LOGIC
+        // ----------------------------------------------------
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const submitBtn = qs('button[type="submit"]', form);
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...';
+                submitBtn.disabled = true;
+
+                const formData = new FormData(form);
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                            // Update header specific count banner
+                            const countBanner = qs('.bg-gradient-to-br h3');
+                            if (countBanner) {
+                                const count = qsa('.rule-checkbox:checked').length;
+                                countBanner.innerHTML = '<i class="fas fa-check-circle mr-2"></i> ' + count + ' Rules Dipilih';
+                            }
+                        } else {
+                            showToast(data.message || 'Terjadi kesalahan.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                        showToast('Gagal menghubungi server.', 'error');
+                        console.error('Error:', error);
+                    });
+            });
+        }
+    })();
+</script>
+
+{% endblock %}

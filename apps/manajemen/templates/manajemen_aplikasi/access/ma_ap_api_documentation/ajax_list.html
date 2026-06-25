@@ -1,0 +1,83 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Dokumentasi AJAX{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-bolt mr-2"></i> Dokumentasi AJAX
+        </h2>
+        <p class="text-gray-500">Kelola daftar endpoint AJAX internal (URL mengandung /ajax/)</p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'manajemen_aplikasi:dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali
+        </a>
+        <a href="{% url 'manajemen_aplikasi:api_documentation_tester' %}" class="bg-slate-700 hover:bg-slate-800 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-vial mr-2"></i> API Tester
+        </a>
+        <a href="{% url 'manajemen_aplikasi:api_documentation_seed_internal_ajax_endpoints' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-bolt mr-2"></i> Sync Endpoint AJAX
+        </a>
+        <a href="{% url 'manajemen_aplikasi:api_documentation_create' %}" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i> Tambah Manual
+        </a>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    {% include 'includes/datatable_filters.html' with show_search=True search_placeholder='Cari URL, method, atau deskripsi...' show_status_filter=False %}
+
+    {% include 'includes/datatable_bulk_actions.html' with show_clear=True show_copy=True show_export=True show_print=True show_delete=True export_formats="csv,excel" %}
+
+    <div class="mt-4 flex justify-end">
+        <label class="text-sm text-gray-600 flex items-center gap-2">
+            <span>Per halaman:</span>
+            <select
+                name="per_page"
+                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm"
+                hx-get="{{ request.path }}"
+                hx-trigger="change"
+                hx-target="#table-container"
+                hx-indicator="#table-loading-overlay"
+                hx-include="[name='search'], [name='per_page']"
+                hx-swap="innerHTML"
+                hx-push-url="true"
+            >
+                <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+            </select>
+        </label>
+    </div>
+
+    <div id="table-container" class="mt-4">
+        {% include 'manajemen_aplikasi/access/ma_ap_api_documentation/partials/_table.html' %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatable-helpers.js' %}?v=1.2"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.ajaxDocIntegratedDT) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    window.ajaxDocIntegratedDT = new DatatableHelper({
+        tableId: 'api_docs_table',
+        pageKey: 'ajax_documentation_list',
+        saveUrl: '{% url "manajemen_aplikasi:ajax_documentation_list" %}',
+        deleteUrl: '{% url "manajemen_aplikasi:ajax_documentation_list" %}',
+        csrfToken: csrfToken,
+        exportFormats: ['csv','excel'],
+        entity: 'api_documentation',
+        useToast: true,
+        debug: true
+    });
+    window.ajaxDocIntegratedDT.init();
+});
+</script>
+{% endblock %}

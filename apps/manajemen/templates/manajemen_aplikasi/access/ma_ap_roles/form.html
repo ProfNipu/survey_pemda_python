@@ -1,0 +1,109 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}{% if edit_mode %}Edit{% else %}Tambah{% endif %} Role{% endblock %}
+
+{% block content %}
+{% url 'manajemen_aplikasi:roles_list' as back_url %}
+{% include 'includes/crud_form_header.html' with icon_class='fas fa-user-tag' title=edit_mode|yesno:'Edit Role,Tambah Role' subtitle=edit_mode|yesno:'Update role/group baru,Buat role/group baru' back_url=back_url %}
+
+<div id="role-form-container">
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-2xl mx-auto">
+    <form method="post" novalidate hx-post="{{ request.path }}" hx-trigger="submit" hx-target="#role-form-container" hx-select="#role-form-container" hx-swap="outerHTML">
+        {% csrf_token %}
+        {% if errors_list %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="text-red-700 font-medium mb-2">
+                <i class="fas fa-exclamation-circle mr-1"></i> Periksa kembali input Anda.
+            </div>
+            <ul class="list-disc list-inside text-red-700">
+                {% for e in errors_list %}
+                    <li>{{ e }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <script>
+        (function(){
+          try {
+            if (document.body.__SWAL_FORM_ERROR_SHOWN__) return;
+            document.body.__SWAL_FORM_ERROR_SHOWN__ = true;
+            var errs = [];
+            {% for e in errors_list %}
+              errs.push('{{ e|escapejs }}');
+            {% endfor %}
+            window.scrollTo({top:0, behavior:'smooth'});
+            if (window.Swal) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Periksa kembali input Anda',
+                html: '<ul style="text-align:left;margin-left:1rem">' + errs.map(function(x){return '<li>'+x+'</li>';}).join('') + '</ul>',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                confirmButtonText: 'OK',
+                focusConfirm: true
+              });
+            }
+          } catch(e) {}
+        })();
+        </script>
+        {% endif %}
+        
+        <div class="mb-6">
+            <label for="name" class="block font-medium text-gray-700 mb-2">
+                Nama Role <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(e.g: Admin, Manager, Operator)</span>
+            </label>
+            <input 
+                type="text" 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="name" 
+                name="name" 
+                value="{% if role_name %}{{ role_name }}{% elif role %}{{ role.name }}{% endif %}"
+                placeholder="e.g: Operator Pegawai"
+            >
+        </div>
+        
+        {% url 'manajemen_aplikasi:roles_list' as cancel_url %}
+        {% include 'includes/crud_form_actions.html' with submit_label=edit_mode|yesno:'Update Role,Simpan Role' cancel_url=cancel_url cancel_label='Batal' %}
+    </form>
+</div>
+
+<script>
+(function(){
+  bindFormSwal('#role-form-container', {
+    successEvent: 'role-form-success',
+    invalidEvent: 'role-form-invalid',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    confirmButtonText: 'OK',
+    scrollToTop: true,
+    dedupeInvalid: false
+  });
+})();
+</script>
+</div>
+
+<div class="mt-5 max-w-2xl mx-auto">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-lightbulb mr-2"></i> Tips:
+        </strong>
+        <ul class="mt-2 mb-0 space-y-1 text-blue-700 list-disc list-inside">
+            <li>Role adalah group yang berisi kumpulan permissions</li>
+            <li>Setelah membuat role, assign permissions via menu "Permissions"</li>
+            <li>Assign role ke users via menu User Management</li>
+        </ul>
+    </div>
+    
+    {% if edit_mode %}
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-3">
+        <strong class="text-amber-800">
+            <i class="fas fa-info-circle mr-2"></i> Note:
+        </strong>
+        <span class="text-amber-700">
+            Untuk assign permissions ke role ini, klik tombol <i class="fas fa-gavel"></i> Permissions di list roles.
+        </span>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

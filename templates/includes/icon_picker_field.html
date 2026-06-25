@@ -1,0 +1,66 @@
+{% load static %}
+<div class="space-y-2">
+  {% if label_text %}
+    <label for="{{ field_id }}" class="block font-medium text-gray-700">{{ label_text }} <span class="text-red-500">*</span></label>
+  {% endif %}
+  <input 
+    id="{{ field_id }}"
+    name="{{ field_name|default:'icon' }}"
+    type="text"
+    value="{{ field_value }}"
+    class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all"
+    placeholder="e.g: fas fa-users, far fa-square, fab fa-github, lucide:user"
+    oninput="(function(v){ if (window.updateIconPreviewFor) updateIconPreviewFor('{{ field_id }}', v); })(this.value)"
+  >
+  <div class="mt-2">
+    <button type="button" data-icon-picker="#{{ field_id }}" class="inline-flex items-center bg-primary hover:bg-primary-600 text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors">
+      <i class="fas fa-icons mr-2"></i> Pilih Icon
+    </button>
+    <span class="ml-3 text-xs text-gray-500">atau ketik manual class icon</span>
+  </div>
+  <div id="{{ field_id }}_preview" class="text-5xl text-gray-700 p-5 bg-gray-50 rounded-lg mt-3 flex items-center justify-center"></div>
+</div>
+<script>(function(){
+  try {
+    var id='{{ field_id }}';
+    var el=document.getElementById(id);
+    var pv=document.getElementById(id+'_preview');
+    var val=el ? (el.value||'') : '';
+    if (window.updateIconPreviewFor){
+      updateIconPreviewFor(id, val);
+    } else if (pv) {
+      if (val && val.indexOf('lucide:')===0){
+        var name = (val.split(':')[1]||'').toLowerCase();
+        pv.innerHTML = '<i data-lucide="'+name+'"></i>';
+        try { if (window.lucide && lucide.createIcons) { lucide.createIcons({ nameAttr: 'data-lucide' }); var s=pv.querySelector('svg'); if(s){ s.style.width='1em'; s.style.height='1em'; } } } catch(e){}
+      } else {
+        pv.innerHTML = '<i class="'+val+'"></i>';
+      }
+    }
+    var draw=function(v){
+      if (!pv) return;
+      if (v && (v.indexOf('lucide:')===0 || v.indexOf('lucide')===0)){
+        var raw=String(v||'');
+        var name='';
+        if (raw.indexOf('lucide:')===0){ name = raw.split(':')[1]||''; }
+        else { var rest=raw.slice(6); if (rest && (rest[0]===':'||rest[0]==='-')) rest=rest.slice(1); name=rest||''; }
+        name = name.replace(/([A-Z]+)([A-Z][a-z])/g,'$1-$2').replace(/([a-z0-9])([A-Z])/g,'$1-$2').replace(/_/g,'-').toLowerCase();
+        pv.innerHTML = '<i data-lucide="'+name+'"></i>';
+        try { if (window.lucide && lucide.createIcons) { lucide.createIcons({ nameAttr: 'data-lucide' }); var s=pv.querySelector('svg'); if(s){ s.style.width='1em'; s.style.height='1em'; } } } catch(e){}
+      } else {
+        pv.innerHTML = '<i class="'+(v||'')+'"></i>';
+      }
+    };
+    var handler=function(){
+      try {
+        var v = el ? (el.value||'') : '';
+        if (window.updateIconPreviewFor) updateIconPreviewFor(id, v); else draw(v);
+      } catch(e){}
+    };
+    if (el){
+      el.addEventListener('input', handler);
+      el.addEventListener('change', handler);
+      el.addEventListener('keyup', handler);
+    }
+  } catch(e){}
+})();</script>

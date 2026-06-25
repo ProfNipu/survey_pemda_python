@@ -1,0 +1,58 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}Konfigurasi Combo Box{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+  <div>
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+      <i class="fas fa-sliders-h mr-2"></i> Konfigurasi Combo Box
+    </h2>
+    <p class="text-gray-500">Pengaturan dropdown reusable (JSON config).</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'manajemen_aplikasi:combobox_config_create' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+      <i class="fas fa-plus mr-2"></i> Tambah
+    </a>
+    <a href="{% url 'manajemen_aplikasi:dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+      <i class="fas fa-arrow-left mr-2"></i> Kembali
+    </a>
+  </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg mt-6">
+  <div class="overflow-x-auto">
+    <table class="min-w-full">
+      <thead>
+        <tr class="text-left text-gray-600 border-b">
+          <th class="py-3 px-4">Code</th>
+          <th class="py-3 px-4">Label</th>
+          <th class="py-3 px-4">Active</th>
+          <th class="py-3 px-4">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cfg in configs %}
+          <tr class="border-b">
+            <td class="py-3 px-4 font-mono text-sm">{{ cfg.code }}</td>
+            <td class="py-3 px-4">{{ cfg.label }}</td>
+            <td class="py-3 px-4">
+              {% if cfg.is_active %}Ya{% else %}Tidak{% endif %}
+            </td>
+            <td class="py-3 px-4">
+              <div class="flex gap-2">
+                <a href="{% url 'manajemen_aplikasi:combobox_config_edit' cfg.id %}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-1.5 px-3 rounded-lg transition-colors">Edit</a>
+                <a href="{% url 'manajemen_aplikasi:combobox_config_delete' cfg.id %}" class="bg-red-500 hover:bg-red-600 text-white font-medium py-1.5 px-3 rounded-lg transition-colors">Hapus</a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" class="py-6 px-4 text-gray-500">Belum ada konfigurasi.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

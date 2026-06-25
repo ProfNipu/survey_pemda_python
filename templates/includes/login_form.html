@@ -1,0 +1,59 @@
+<!-- Login Form Component (Reusable) -->
+<!-- Usage: include 'includes/login_form.html' -->
+
+<div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
+    <div class="text-center mb-8">
+        <i class="fas fa-lock text-5xl mb-4" style="color: #0066cc;"></i>
+        <h2 class="text-2xl font-bold text-gray-800">Login ke Sistem</h2>
+        <p class="text-gray-500 mt-2">Masukkan credentials Anda</p>
+    </div>
+    
+    <form method="post" action="" id="loginForm" novalidate>
+        {% csrf_token %}
+        
+        <!-- Username Field -->
+        {% include 'includes/text_input.html' with field_id='username' field_name='username' field_type='text' placeholder='Masukkan username, email, atau NIP' icon='user' label='Username / Email / NIP' autofocus=True %}
+        
+        <!-- Password Field with Toggle -->
+        <div class="mb-5">
+            {% include 'includes/password_input.html' with field_id='password' field_name='password' placeholder='Masukkan password' icon_id='toggleIcon' label='Password' %}
+        </div>
+        
+        <!-- Remember Me -->
+        {% include 'includes/checkbox_input.html' with field_id='remember' field_name='remember' label='Ingat saya (30 hari)' %}
+        
+        {% include 'includes/submit_button.html' with button_id='loginBtn' button_text='Masuk ke Sistem' icon='sign-in-alt' %}
+    </form>
+    
+    <!-- Secure Login Badge -->
+    <div class="mt-6 text-center">
+        <p class="text-sm text-gray-500">
+            <i class="fas fa-shield-alt mr-1"></i>
+            Secure Login System
+        </p>
+        
+        <!-- Info Button (Mobile Only) -->
+        <div class="text-center">
+            <button id="infoButton" onclick="showAppInfo()" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors inline-block">
+                <i class="fas fa-info-circle mr-1"></i>
+                Tentang {{ app_name }}
+            </button>
+        </div>
+        <script>
+            // Hide button on desktop, show on mobile
+            function toggleInfoButton() {
+                var btn = document.getElementById('infoButton');
+                if (btn) {
+                    if (window.innerWidth >= 768) {
+                        btn.style.display = 'none'; // Desktop: hide
+                    } else {
+                        btn.style.display = 'inline-block'; // Mobile: show centered
+                    }
+                }
+            }
+            // Run on load and resize
+            toggleInfoButton();
+            window.addEventListener('resize', toggleInfoButton);
+        </script>
+    </div>
+</div>

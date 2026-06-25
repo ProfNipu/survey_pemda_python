@@ -1,0 +1,185 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    {% if edit_mode %}Edit Periode Survey{% else %}Tambah Periode Survey{% endif %} - {{ app_name }}
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/datatable-reusable.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    {% include 'includes/crud_form_header.html' with title='Periode Survey' subtitle='Atur waktu buka/tutup survey berdasarkan periode' icon='fas fa-calendar-alt' %}
+    
+    <div class="bg-white rounded-xl p-6 shadow-lg">
+        <form method="post" hx-post="{% if edit_mode %}{% url 'survey:periode_survey_edit' obj.id %}{% else %}{% url 'survey:periode_survey_create' %}{% endif %}" hx-target="body" hx-swap="none" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Jenis Survey -->
+                <div class="space-y-2">
+                    <label for="{{ form.jenis_survey.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.jenis_survey.label }}
+                        <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.jenis_survey }}
+                    {% if form.jenis_survey.help_text %}
+                        <p class="text-sm text-gray-500">{{ form.jenis_survey.help_text }}</p>
+                    {% endif %}
+                    {% if form.jenis_survey.errors %}
+                        <div class="text-red-600 text-sm">
+                            {% for error in form.jenis_survey.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Nama Periode -->
+                <div class="space-y-2">
+                    <label for="{{ form.nama_periode.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.nama_periode.label }}
+                        <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.nama_periode }}
+                    {% if form.nama_periode.help_text %}
+                        <p class="text-sm text-gray-500">{{ form.nama_periode.help_text }}</p>
+                    {% endif %}
+                    {% if form.nama_periode.errors %}
+                        <div class="text-red-600 text-sm">
+                            {% for error in form.nama_periode.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Tanggal & Jam Mulai -->
+                <div class="space-y-2">
+                    <label for="{{ form.tanggal_mulai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.tanggal_mulai.label }}
+                        <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.tanggal_mulai }}
+                    {% if form.tanggal_mulai.help_text %}
+                        <p class="text-sm text-gray-500">{{ form.tanggal_mulai.help_text }}</p>
+                    {% endif %}
+                    {% if form.tanggal_mulai.errors %}
+                        <div class="text-red-600 text-sm">
+                            {% for error in form.tanggal_mulai.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tanggal & Jam Selesai -->
+                <div class="space-y-2">
+                    <label for="{{ form.tanggal_selesai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.tanggal_selesai.label }}
+                        <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.tanggal_selesai }}
+                    {% if form.tanggal_selesai.help_text %}
+                        <p class="text-sm text-gray-500">{{ form.tanggal_selesai.help_text }}</p>
+                    {% endif %}
+                    {% if form.tanggal_selesai.errors %}
+                        <div class="text-red-600 text-sm">
+                            {% for error in form.tanggal_selesai.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6">
+                <!-- Deskripsi -->
+                <div class="space-y-2">
+                    <label for="{{ form.deskripsi.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.deskripsi.label }}
+                    </label>
+                    {{ form.deskripsi }}
+                    {% if form.deskripsi.help_text %}
+                        <p class="text-sm text-gray-500">{{ form.deskripsi.help_text }}</p>
+                    {% endif %}
+                    {% if form.deskripsi.errors %}
+                        <div class="text-red-600 text-sm">
+                            {% for error in form.deskripsi.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Status Aktif -->
+                <div class="space-y-2">
+                    <div class="flex items-center space-x-2">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" class="text-sm font-medium text-gray-700">
+                            {{ form.is_active.label }}
+                        </label>
+                    </div>
+                    {% if form.is_active.help_text %}
+                        <p class="text-sm text-gray-500">{{ form.is_active.help_text }}</p>
+                    {% endif %}
+                    {% if form.is_active.errors %}
+                        <div class="text-red-600 text-sm">
+                            {% for error in form.is_active.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Form Errors -->
+            {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="text-red-800">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% include 'includes/crud_form_actions.html' with back_url='survey:periode_survey_list' %}
+        </form>
+    </div>
+
+    <!-- Info Box -->
+    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-start">
+            <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+            <div class="text-blue-800">
+                <h4 class="font-medium mb-2">Informasi Periode Survey</h4>
+                <ul class="text-sm space-y-1">
+                    <li>• Survey hanya dapat diakses dalam rentang waktu yang ditentukan</li>
+                    <li>• Pastikan tanggal dan jam mulai lebih kecil dari tanggal selesai</li>
+                    <li>• Status "Aktif" harus dicentang agar periode dapat berfungsi</li>
+                    <li>• Satu jenis survey dapat memiliki beberapa periode</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Bind form submission with SweetAlert
+    bindFormSwal({
+        formSelector: 'form[hx-post]',
+        successEvent: 'periode-survey-form-success',
+        invalidEvent: 'periode-survey-form-invalid',
+        entityName: 'Periode Survey'
+    });
+});
+</script>
+{% endblock %}

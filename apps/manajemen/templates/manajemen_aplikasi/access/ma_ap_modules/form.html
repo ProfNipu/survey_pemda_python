@@ -1,0 +1,154 @@
+{% extends 'base_dashboard.html' %}
+{% load permission_tags %}
+
+{% block page_title %}{% if edit_mode %}Edit{% else %}Tambah{% endif %} Module{% endblock %}
+
+{% block content %}
+{% has_permission 'pengaturan' 'permission_module' 'view' as can_back_list %}
+{% url 'manajemen_aplikasi:module_list' as back_url %}
+{% include 'includes/crud_form_header.html' with icon_class='fas fa-th-large' title=edit_mode|yesno:'Edit Module,Tambah Module' subtitle=edit_mode|yesno:'Update sidebar module baru,Buat sidebar module baru' back_url=back_url show_back=can_back_list %}
+
+<div id="module-form-container">
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-3xl mx-auto">
+    <form method="post" novalidate hx-post="{{ request.path }}" hx-trigger="submit" hx-target="#module-form-container" hx-select="#module-form-container" hx-swap="outerHTML">
+        {% csrf_token %}
+        {% if errors_list %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="text-red-700 font-medium mb-2">
+                <i class="fas fa-exclamation-circle mr-1"></i> Periksa kembali input Anda.
+            </div>
+            <ul class="list-disc list-inside text-red-700">
+                {% for e in errors_list %}
+                    <li>{{ e }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {% if edit_mode and rule_count %}
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <div class="text-amber-800 font-medium mb-1">
+                <i class="fas fa-lock mr-1"></i> Nama module dikunci
+            </div>
+            <p class="text-amber-700 text-sm">Masih terhubung ke {{ rule_count }} rule. Anda masih bisa mengubah <strong>Label</strong>, <strong>Icon</strong>, <strong>Order</strong>, <strong>Deskripsi</strong>, dan <strong>Status</strong>.</p>
+        </div>
+        {% endif %}
+
+        <div class="mb-6">
+            <label for="nama_module" class="block font-medium text-gray-700 mb-2">
+                Nama Module <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(lowercase, no spaces, e.g: dashboard, pegawai)</span>
+            </label>
+            <input 
+                type="text" 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all {% if edit_mode and rule_count %}bg-gray-100 text-gray-500 cursor-not-allowed focus:border-gray-200 focus:ring-0{% endif %}" 
+                id="nama_module" 
+                name="nama_module" 
+                value="{% if module %}{{ module.nama_module }}{% endif %}"
+                {% if edit_mode and rule_count %}readonly aria-readonly="true" data-readonly="true" onkeydown="return false;"{% endif %}
+                placeholder="e.g: dashboard, pegawai, siasn"
+            >
+            {% if edit_mode and rule_count %}
+            <small class="text-gray-500 text-sm mt-1 block"><i class="fas fa-lock mr-1"></i> Nama module tidak bisa diubah</small>
+            {% endif %}
+        </div>
+        
+        <div class="mb-6">
+            <label for="label_module" class="block font-medium text-gray-700 mb-2">
+                Label Module <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(Display name, e.g: Dashboard, Data Pegawai)</span>
+            </label>
+            <input 
+                type="text" 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="label_module" 
+                name="label_module" 
+                value="{% if module %}{{ module.label_module }}{% endif %}"
+                placeholder="e.g: Dashboard, Data Pegawai, SIASN Integration"
+            >
+        </div>
+        
+        <div class="mb-6">
+            {% include 'includes/icon_picker_field.html' with field_id='icon' field_name='icon' field_value=module.icon|default:'fas fa-folder' label_text='Icon' %}
+        </div>
+        
+        <div class="mb-6">
+            <label for="order" class="block font-medium text-gray-700 mb-2">
+                Order <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(Urutan di sidebar, angka kecil di atas)</span>
+            </label>
+            <input 
+                type="number" 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="order" 
+                name="order" 
+                value="{% if module %}{{ module.order }}{% else %}0{% endif %}"
+                min="0"
+                placeholder="e.g: 1, 2, 3"
+            >
+        </div>
+        
+        <div class="mb-6">
+            <label for="deskripsi_module" class="block font-medium text-gray-700 mb-2">
+                Deskripsi
+                <span class="text-sm text-gray-500 font-normal">(optional)</span>
+            </label>
+            <textarea 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="deskripsi_module" 
+                name="deskripsi_module" 
+                rows="3"
+                placeholder="Deskripsi singkat tentang module ini..."
+            >{% if module %}{{ module.deskripsi_module }}{% endif %}</textarea>
+        </div>
+        
+        <div class="flex items-center mb-6">
+            <input 
+                type="checkbox" 
+                class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2" 
+                id="is_active" 
+                name="is_active"
+                {% if not module or module.is_active %}checked{% endif %}
+            >
+            <label class="ml-2 text-gray-700" for="is_active">
+                Module Active (tampil di sidebar)
+            </label>
+        </div>
+        
+        {% url 'manajemen_aplikasi:module_list' as cancel_url %}
+        {% include 'includes/crud_form_actions.html' with submit_label=edit_mode|yesno:'Update Module,Simpan Module' cancel_url=cancel_url cancel_label='Batal' show_cancel=can_back_list %}
+    </form>
+</div>
+
+<script>
+(function(){
+  bindFormSwal('#module-form-container', {
+    successEvent: 'module-form-success',
+    invalidEvent: 'module-form-invalid',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    confirmButtonText: 'OK',
+    scrollToTop: true,
+    dedupeInvalid: false
+  });
+})();
+</script>
+</div>
+
+<div class="mt-5 max-w-3xl mx-auto">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-lightbulb mr-2"></i> Contoh Modules & Icons:
+        </strong>
+        <ul class="mt-2 mb-0 space-y-1 text-blue-700 text-sm">
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">dashboard</code> - Dashboard (<code class="bg-blue-100 px-2 py-0.5 rounded">fas fa-tachometer-alt</code>)</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">pegawai</code> - Data Pegawai (<code class="bg-blue-100 px-2 py-0.5 rounded">fas fa-users</code>)</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">riwayat</code> - Riwayat (<code class="bg-blue-100 px-2 py-0.5 rounded">fas fa-history</code>)</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">siasn</code> - SIASN Integration (<code class="bg-blue-100 px-2 py-0.5 rounded">fas fa-sync-alt</code>)</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">laporan</code> - Laporan (<code class="bg-blue-100 px-2 py-0.5 rounded">fas fa-chart-bar</code>)</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">pengaturan</code> - Pengaturan (<code class="bg-blue-100 px-2 py-0.5 rounded">fas fa-cogs</code>)</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

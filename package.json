@@ -1,0 +1,15 @@
+{
+  "name": "esimpeg-python",
+  "version": "1.0.0",
+  "description": "ESIMPEG - Sistem Kepegawaian",
+  "scripts": {
+    "dev": "tailwindcss -i ./static/css/input.css -o ./static/css/tailwind.css --watch",
+    "build": "tailwindcss -i ./static/css/input.css -o ./static/css/tailwind.css --minify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

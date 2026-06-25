@@ -1,0 +1,85 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}{% if edit_mode %}Edit{% else %}Tambah{% endif %} Jenis Survey{% endblock %}
+
+{% block content %}
+{% url 'survey:jenis_survey_list' as back_url %}
+{% include 'includes/crud_form_header.html' with icon_class='fas fa-tags' title=edit_mode|yesno:'Edit Jenis Survey,Tambah Jenis Survey' subtitle=edit_mode|yesno:'Update jenis survey,Buat jenis survey baru' back_url=back_url %}
+
+<div id="jenis-survey-form-container">
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-3xl mx-auto">
+    <form method="post" id="jenisSurveyForm" novalidate hx-post="{{ request.path }}" hx-trigger="submit" hx-target="#jenis-survey-form-container" hx-select="#jenis-survey-form-container" hx-swap="outerHTML">
+        {% csrf_token %}
+        
+        <div class="mb-6">
+            <label for="id_kode" class="block font-medium text-gray-700 mb-2">
+                Kode Survey <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(Huruf besar, underscore)</span>
+            </label>
+            {{ form.kode }}
+            {% if form.kode.help_text %}
+            <p class="text-sm text-gray-500 mt-1">{{ form.kode.help_text }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-6">
+            <label for="id_nama" class="block font-medium text-gray-700 mb-2">
+                Nama Survey <span class="text-red-500">*</span>
+            </label>
+            {{ form.nama }}
+            {% if form.nama.help_text %}
+            <p class="text-sm text-gray-500 mt-1">{{ form.nama.help_text }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-6">
+            <label for="id_deskripsi" class="block font-medium text-gray-700 mb-2">
+                Deskripsi
+            </label>
+            {{ form.deskripsi }}
+            {% if form.deskripsi.help_text %}
+            <p class="text-sm text-gray-500 mt-1">{{ form.deskripsi.help_text }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="flex items-center mb-6 mt-5">
+            {{ form.is_active }}
+            <label class="ml-2 text-gray-700" for="id_is_active">
+                {{ form.is_active.label }}
+            </label>
+        </div>
+        
+        {% url 'survey:jenis_survey_list' as cancel_url %}
+        {% include 'includes/crud_form_actions.html' with submit_label=edit_mode|yesno:'Update,Simpan' cancel_url=cancel_url cancel_label='Batal' %}
+    </form>
+</div>
+
+<script>
+(function(){
+  bindFormSwal('#jenis-survey-form-container', {
+    successEvent: 'jenis-survey-form-success',
+    invalidEvent: 'jenis-survey-form-invalid',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    confirmButtonText: 'OK',
+    scrollToTop: true,
+    dedupeInvalid: false
+  });
+})();
+</script>
+</div>
+
+<div class="mt-5 max-w-3xl mx-auto">
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <strong class="text-amber-800">
+            <i class="fas fa-lightbulb mr-2"></i> Contoh Jenis Survey:
+        </strong>
+        <ul class="mt-2 mb-0 space-y-1 text-amber-700 text-sm list-disc list-inside">
+            <li><code class="bg-amber-100 px-2 py-0.5 rounded">JPT</code> - Penilaian Jabatan Pimpinan Tinggi</li>
+            <li><code class="bg-amber-100 px-2 py-0.5 rounded">SURVEY_360</code> - Survey 360 Degree</li>
+            <li><code class="bg-amber-100 px-2 py-0.5 rounded">KINERJA_TAHUNAN</code> - Penilaian Kinerja Tahunan</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

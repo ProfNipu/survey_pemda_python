@@ -1,0 +1,54 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Manajemen Menu{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-sitemap mr-2"></i> Manajemen Menu
+        </h2>
+        <p class="text-gray-500">Kelola item menu dinamis (parent/child, order, category, permissions)</p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'manajemen_aplikasi:dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali
+        </a>
+        <a href="{% url 'manajemen_aplikasi:menu_create' %}" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i> Tambah Menu
+        </a>
+        <a href="{% url 'manajemen_aplikasi:menu_category_list' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-layer-group mr-2"></i> Kelola Kategori
+        </a>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    {% include 'includes/datatable_filters.html' with show_search=True search_placeholder='Cari nama, permission key, atau link...' show_status_filter=False %}
+
+    <div id="table-container">
+        {% include 'manajemen_aplikasi/access/ma_ap_menu/partials/_table.html' %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatable-helpers.js' %}?v=1.2"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.menusIntegratedDT) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    window.menusIntegratedDT = new DatatableHelper({
+        pageKey: 'menu_list',
+        saveUrl: '{% url "manajemen_aplikasi:menu_list" %}',
+        deleteUrl: '{% url "manajemen_aplikasi:menu_list" %}',
+        csrfToken: csrfToken,
+        entity: 'menus',
+        useToast: true,
+        debug: true
+    });
+    window.menusIntegratedDT.init();
+});
+</script>
+{% endblock %}

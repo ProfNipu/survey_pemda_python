@@ -1,0 +1,298 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    Survey 360° - Penilaian Kinerja Pegawai - {{ app_name }}
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/datatable-reusable.css' %}">
+    <style>
+        .survey-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .pegawai-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .pegawai-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #6c757d;
+        }
+        
+        .pegawai-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #212529;
+        }
+        
+        .pegawai-info p {
+            margin: 2px 0;
+            font-size: 13px;
+            color: #6c757d;
+        }
+        
+        .question-section {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .question-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 10px;
+        }
+        
+        .question-text {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        
+        .slider-container {
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #dc3545 0%, #fd7e14 25%, #ffc107 50%, #28a745 75%, #198754 100%);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #007bff;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #007bff;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .slider-value {
+            background: #ffc107;
+            color: #212529;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-left: 4px solid #2196f3;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .info-box .info-title {
+            color: #1976d2;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .info-box .info-text {
+            color: #1976d2;
+            font-size: 14px;
+        }
+        
+        .year-badge {
+            background: #007bff;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="text-center mb-4">
+        <h1 class="h3 mb-3">Survey 360° - Penilaian Kinerja Pegawai</h1>
+        <div class="year-badge">
+            <i class="fas fa-calendar-alt"></i>
+            Periode: {{ jenis_survey.periode_aktif.nama_periode }}
+        </div>
+        {% if jenis_survey.periode_aktif %}
+        <p class="text-sm text-gray-600 mt-2">
+            <i class="fas fa-clock"></i>
+            {{ jenis_survey.periode_aktif.tanggal_mulai|date:"d M Y H:i" }} - {{ jenis_survey.periode_aktif.tanggal_selesai|date:"d M Y H:i" }}
+        </p>
+        {% endif %}
+    </div>
+    
+    <form method="post" hx-post="{% url 'survey:buat_penilaian' %}" hx-target="body" hx-swap="none">
+        {% csrf_token %}
+        
+        <!-- Hidden fields untuk data penilai -->
+        <input type="hidden" name="nip_penilai" value="{{ initial_data.nip_penilai }}">
+        <input type="hidden" name="nama_penilai" value="{{ initial_data.nama_penilai }}">
+        <input type="hidden" name="jabatan_penilai" value="{{ initial_data.jabatan_penilai }}">
+        <input type="hidden" name="unit_kerja_penilai" value="{{ initial_data.unit_kerja_penilai }}">
+        <input type="hidden" name="periode_mulai" value="{{ initial_data.periode_mulai }}">
+        <input type="hidden" name="periode_selesai" value="{{ initial_data.periode_selesai }}">
+        
+        <!-- Pegawai yang Akan Dinilai -->
+        <div class="survey-card">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="pegawai-card">
+                        <div class="pegawai-photo">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="pegawai-info" style="flex: 1;">
+                            <h4>Nama Pegawai:</h4>
+                            <input type="text" name="nama_dinilai" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent" placeholder="Nama lengkap yang dinilai" required>
+                            
+                            <p><strong>NIP:</strong></p>
+                            <input type="text" name="nip_dinilai" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent" placeholder="Masukkan NIP yang dinilai" required>
+                            
+                            <p><strong>Jabatan:</strong></p>
+                            <input type="text" name="jabatan_dinilai" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent" placeholder="Jabatan yang dinilai" required>
+                            
+                            <p><strong>Unit Kerja:</strong></p>
+                            <input type="text" name="unit_kerja_dinilai" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent" placeholder="Unit kerja yang dinilai" required>
+                        </div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <strong>Pegawai yang Akan Dinilai:</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Info Box -->
+        <div class="info-box">
+            <div class="info-title">
+                <i class="fas fa-info-circle"></i> Petunjuk:
+            </div>
+            <div class="info-text">
+                Silakan berikan penilaian untuk setiap aspek berikut dengan menggeser slider dari 1 (Sangat Kurang) hingga 5 (Sangat Baik).
+            </div>
+        </div>
+        
+        <!-- Aspek Penilaian dari Database -->
+        {% for pertanyaan in pertanyaan_list %}
+        <div class="question-section">
+            <div class="question-title">{{ forloop.counter }}. {{ pertanyaan.judul }} <span class="text-danger">*</span></div>
+            {% if pertanyaan.pertanyaan %}
+            <div class="question-text">{{ pertanyaan.pertanyaan }}</div>
+            {% endif %}
+            
+            <div class="slider-container">
+                <input type="range" min="1" max="5" value="3" class="slider" 
+                       id="pertanyaan-{{ pertanyaan.id }}-slider" 
+                       name="pertanyaan_{{ pertanyaan.id }}"
+                       oninput="updateSliderValue('pertanyaan-{{ pertanyaan.id }}', this.value)">
+                <div class="slider-labels">
+                    <span>1 - Sangat Kurang</span>
+                    <span>2 - Kurang</span>
+                    <span>3 - Cukup</span>
+                    <span>4 - Baik</span>
+                    <span>5 - Sangat Baik</span>
+                </div>
+                <div class="slider-value" id="pertanyaan-{{ pertanyaan.id }}-value">Nilai: 3</div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Komentar dan Saran -->
+        <div class="question-section">
+            <div class="question-title">Komentar dan Saran (Opsional)</div>
+            <div class="mb-3">
+                <label class="form-label">Komentar</label>
+                <textarea name="komentar" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent" rows="4" placeholder="Komentar umum tentang kinerja yang dinilai"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Saran</label>
+                <textarea name="saran" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent" rows="4" placeholder="Saran untuk perbaikan dan pengembangan"></textarea>
+            </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-save"></i> Simpan Penilaian
+            </button>
+            <a href="{% url 'survey:penilaian_list' %}" class="btn btn-secondary btn-lg px-5 ms-3">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateSliderValue(fieldName, value) {
+    // Update display value
+    document.getElementById(fieldName + '-value').textContent = 'Nilai: ' + value;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Bind form submission with SweetAlert
+    bindFormSwal({
+        formSelector: 'form[hx-post]',
+        successEvent: 'penilaian-jpt-form-success',
+        invalidEvent: 'penilaian-jpt-form-invalid',
+        entityName: 'Penilaian JPT'
+    });
+});
+</script>
+{% endblock %}

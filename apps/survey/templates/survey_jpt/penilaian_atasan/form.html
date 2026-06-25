@@ -1,0 +1,390 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-star text-warning me-2"></i>Buat Penilaian
+            </h1>
+            <p class="text-muted mb-0">Berikan penilaian objektif terhadap atasan Anda</p>
+        </div>
+        <div>
+            <a href="{% url 'survey:penilaian_atasan_riwayat' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-history me-1"></i>Riwayat Penilaian
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Info -->
+    <div class="alert alert-info border-left-info" role="alert">
+        <div class="d-flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-info-circle fa-lg text-info"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <h6 class="alert-heading mb-1">Petunjuk Penilaian</h6>
+                <p class="mb-0">
+                    Penilaian ini bersifat rahasia dan objektif. Berikan penilaian yang jujur berdasarkan pengamatan Anda terhadap kinerja atasan dalam periode yang ditentukan.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-edit me-2"></i>Form Buat Penilaian
+            </h6>
+            <div class="text-muted small">
+                <i class="fas fa-clock me-1"></i>
+                {% if edit_mode %}Edit Mode{% else %}Input Baru{% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="post" 
+                  hx-post="{% if edit_mode %}{% url 'survey:penilaian_atasan_edit' obj.id %}{% else %}{% url 'survey:penilaian_atasan_form' %}{% endif %}"
+                  hx-target="body"
+                  hx-swap="outerHTML"
+                  class="needs-validation" 
+                  novalidate>
+                {% csrf_token %}
+
+                <!-- Data Atasan yang Dinilai -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="fas fa-user-tie me-2"></i>Data Atasan yang Dinilai
+                        </h6>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.nip_dinilai.id_for_label }}" class="form-label">
+                            {{ form.nip_dinilai.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nip_dinilai }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.nama_dinilai.id_for_label }}" class="form-label">
+                            {{ form.nama_dinilai.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nama_dinilai }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.jabatan_dinilai.id_for_label }}" class="form-label">
+                            {{ form.jabatan_dinilai.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.jabatan_dinilai }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.unit_kerja_dinilai.id_for_label }}" class="form-label">
+                            {{ form.unit_kerja_dinilai.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.unit_kerja_dinilai }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+
+                <!-- Data Penilai (Auto-filled) -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="text-success border-bottom pb-2 mb-3">
+                            <i class="fas fa-user me-2"></i>Data Penilai (Anda)
+                        </h6>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.nip_penilai.id_for_label }}" class="form-label">
+                            {{ form.nip_penilai.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nip_penilai }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.nama_penilai.id_for_label }}" class="form-label">
+                            {{ form.nama_penilai.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nama_penilai }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.jabatan_penilai.id_for_label }}" class="form-label">
+                            {{ form.jabatan_penilai.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.jabatan_penilai }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.unit_kerja_penilai.id_for_label }}" class="form-label">
+                            {{ form.unit_kerja_penilai.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.unit_kerja_penilai }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+
+                <!-- Periode Penilaian -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="text-info border-bottom pb-2 mb-3">
+                            <i class="fas fa-calendar-alt me-2"></i>Periode Penilaian
+                        </h6>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.periode_mulai.id_for_label }}" class="form-label">
+                            {{ form.periode_mulai.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.periode_mulai }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.periode_selesai.id_for_label }}" class="form-label">
+                            {{ form.periode_selesai.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.periode_selesai }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+
+                <!-- Aspek Penilaian -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="text-warning border-bottom pb-2 mb-3">
+                            <i class="fas fa-star me-2"></i>Aspek Penilaian (Skala 1-5)
+                        </h6>
+                        <div class="alert alert-light border-left-warning mb-3">
+                            <small class="text-muted">
+                                <strong>Keterangan Skala:</strong>
+                                1 = Sangat Kurang, 2 = Kurang, 3 = Cukup, 4 = Baik, 5 = Sangat Baik
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- Kepemimpinan -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.kepemimpinan.id_for_label }}" class="form-label">
+                            <i class="fas fa-crown text-warning me-1"></i>{{ form.kepemimpinan.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.kepemimpinan }}
+                        <small class="form-text text-muted">{{ form.kepemimpinan.help_text }}</small>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    
+                    <!-- Kerjasama -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.kerjasama.id_for_label }}" class="form-label">
+                            <i class="fas fa-handshake text-success me-1"></i>{{ form.kerjasama.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.kerjasama }}
+                        <small class="form-text text-muted">{{ form.kerjasama.help_text }}</small>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    
+                    <!-- Komunikasi -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.komunikasi.id_for_label }}" class="form-label">
+                            <i class="fas fa-comments text-info me-1"></i>{{ form.komunikasi.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.komunikasi }}
+                        <small class="form-text text-muted">{{ form.komunikasi.help_text }}</small>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    
+                    <!-- Inovasi -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.inovasi.id_for_label }}" class="form-label">
+                            <i class="fas fa-lightbulb text-warning me-1"></i>{{ form.inovasi.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.inovasi }}
+                        <small class="form-text text-muted">{{ form.inovasi.help_text }}</small>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    
+                    <!-- Integritas -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.integritas.id_for_label }}" class="form-label">
+                            <i class="fas fa-shield-alt text-primary me-1"></i>{{ form.integritas.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.integritas }}
+                        <small class="form-text text-muted">{{ form.integritas.help_text }}</small>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    
+                    <!-- Orientasi Hasil -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.orientasi_hasil.id_for_label }}" class="form-label">
+                            <i class="fas fa-target text-danger me-1"></i>{{ form.orientasi_hasil.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.orientasi_hasil }}
+                        <small class="form-text text-muted">{{ form.orientasi_hasil.help_text }}</small>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+
+                <!-- Komentar dan Saran -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="text-secondary border-bottom pb-2 mb-3">
+                            <i class="fas fa-comment-alt me-2"></i>Komentar dan Saran
+                        </h6>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.komentar.id_for_label }}" class="form-label">
+                            {{ form.komentar.label }}
+                        </label>
+                        {{ form.komentar }}
+                        <small class="form-text text-muted">Berikan komentar umum tentang kinerja atasan</small>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.saran.id_for_label }}" class="form-label">
+                            {{ form.saran.label }}
+                        </label>
+                        {{ form.saran }}
+                        <small class="form-text text-muted">Berikan saran konstruktif untuk perbaikan</small>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'survey:penilaian_atasan_riwayat' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Kembali
+                            </a>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>
+                                    {% if edit_mode %}Update Penilaian{% else %}Simpan Penilaian{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="d-none">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('.needs-validation');
+    
+    // HTMX event handlers
+    document.body.addEventListener('penilaian-atasan-form-success', function(e) {
+        const detail = e.detail;
+        
+        // Show success message
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: detail.message,
+            timer: 2000,
+            showConfirmButton: false
+        }).then(() => {
+            if (detail.redirect) {
+                window.location.href = detail.redirect;
+            }
+        });
+    });
+    
+    document.body.addEventListener('penilaian-atasan-form-invalid', function(e) {
+        const detail = e.detail;
+        
+        // Show error message
+        let errorText = 'Periksa kembali input Anda.';
+        if (detail.errors && detail.errors.length > 0) {
+            errorText = detail.errors.join('<br>');
+        }
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            html: errorText,
+            confirmButtonText: 'OK'
+        });
+        
+        // Show field errors
+        if (detail.fieldErrors) {
+            Object.keys(detail.fieldErrors).forEach(fieldName => {
+                const field = document.querySelector(`[name="${fieldName}"]`);
+                if (field) {
+                    field.classList.add('is-invalid');
+                    const feedback = field.parentNode.querySelector('.invalid-feedback');
+                    if (feedback) {
+                        feedback.textContent = detail.fieldErrors[fieldName].join(', ');
+                    }
+                }
+            });
+        }
+    });
+    
+    // Clear validation on input
+    form.addEventListener('input', function(e) {
+        if (e.target.classList.contains('is-invalid')) {
+            e.target.classList.remove('is-invalid');
+        }
+    });
+    
+    // Show loading on form submit
+    form.addEventListener('submit', function() {
+        document.getElementById('loading-overlay').classList.remove('d-none');
+    });
+});
+</script>
+
+<style>
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2653d4;
+}
+</style>
+{% endblock %}

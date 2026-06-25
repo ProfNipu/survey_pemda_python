@@ -1,0 +1,272 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Dashboard - {{ app_name }}{% endblock %}
+{% block page_title %}Dashboard Survey{% endblock %}
+
+{% block content %}
+<div class="w-full">
+    <!-- Welcome Section with Survey Theme -->
+    <div class="grid grid-cols-1 gap-5 mb-6">
+        <div class="col-span-1">
+            <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-2xl shadow-lg p-6 text-white">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                                <i class="fas fa-poll-h text-3xl text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold mb-1 text-white">Selamat Datang, {{ request.user.username|title }}! 👋</h3>
+                                <p class="text-white/90">Dashboard Survey & Analisis Data</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right hidden md:block">
+                        <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                            <i class="fas fa-calendar-alt mr-2 text-white"></i>
+                            <span class="font-medium text-white">{{ today|date:"d F Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards - Survey Theme -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+        <!-- Total Survey -->
+        <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-blue-100 rounded-full p-3">
+                        <i class="fas fa-clipboard-list text-blue-600 text-2xl"></i>
+                    </div>
+                    <span class="text-3xl font-bold text-blue-600">0</span>
+                </div>
+                <h6 class="text-gray-600 font-medium">Total Survey</h6>
+                <p class="text-sm text-gray-500 mt-1">Survey Aktif & Selesai</p>
+            </div>
+            <div class="bg-blue-50 px-6 py-2">
+                <span class="text-xs text-blue-600 font-medium">
+                    <i class="fas fa-arrow-up mr-1"></i>0% dari bulan lalu
+                </span>
+            </div>
+        </div>
+
+        <!-- Total Responden -->
+        <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-green-100 rounded-full p-3">
+                        <i class="fas fa-users text-green-600 text-2xl"></i>
+                    </div>
+                    <span class="text-3xl font-bold text-green-600">0</span>
+                </div>
+                <h6 class="text-gray-600 font-medium">Total Responden</h6>
+                <p class="text-sm text-gray-500 mt-1">Partisipan Survey</p>
+            </div>
+            <div class="bg-green-50 px-6 py-2">
+                <span class="text-xs text-green-600 font-medium">
+                    <i class="fas fa-check-circle mr-1"></i>Aktif
+                </span>
+            </div>
+        </div>
+
+        <!-- Response Rate -->
+        <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-amber-100 rounded-full p-3">
+                        <i class="fas fa-chart-pie text-amber-600 text-2xl"></i>
+                    </div>
+                    <span class="text-3xl font-bold text-amber-600">0%</span>
+                </div>
+                <h6 class="text-gray-600 font-medium">Response Rate</h6>
+                <p class="text-sm text-gray-500 mt-1">Tingkat Partisipasi</p>
+            </div>
+            <div class="bg-amber-50 px-6 py-2">
+                <span class="text-xs text-amber-600 font-medium">
+                    <i class="fas fa-chart-line mr-1"></i>Target: 80%
+                </span>
+            </div>
+        </div>
+
+        <!-- Survey Aktif -->
+        <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-purple-100 rounded-full p-3">
+                        <i class="fas fa-poll text-purple-600 text-2xl"></i>
+                    </div>
+                    <span class="text-3xl font-bold text-purple-600">0</span>
+                </div>
+                <h6 class="text-gray-600 font-medium">Survey Aktif</h6>
+                <p class="text-sm text-gray-500 mt-1">Sedang Berjalan</p>
+            </div>
+            <div class="bg-purple-50 px-6 py-2">
+                <span class="text-xs text-purple-600 font-medium">
+                    <i class="fas fa-clock mr-1"></i>Real-time
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+        <!-- Survey Progress -->
+        <div class="bg-white rounded-xl shadow-md">
+            <div class="p-5 border-b border-gray-200">
+                <h5 class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-tasks text-blue-600 mr-2"></i>
+                    Progress Survey Terbaru
+                </h5>
+            </div>
+            <div class="p-5">
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">Survey Kepuasan Masyarakat</span>
+                            <span class="text-sm font-bold text-blue-600">75%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500" style="width: 75%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">150 dari 200 responden</p>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">Survey Kinerja Pegawai</span>
+                            <span class="text-sm font-bold text-green-600">60%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500" style="width: 60%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">90 dari 150 responden</p>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">Survey Evaluasi Program</span>
+                            <span class="text-sm font-bold text-amber-600">40%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-gradient-to-r from-amber-500 to-amber-600 h-3 rounded-full transition-all duration-500" style="width: 40%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">40 dari 100 responden</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Response Distribution -->
+        <div class="bg-white rounded-xl shadow-md">
+            <div class="p-5 border-b border-gray-200">
+                <h5 class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-chart-bar text-green-600 mr-2"></i>
+                    Distribusi Respons
+                </h5>
+            </div>
+            <div class="p-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
+                        <i class="fas fa-smile text-blue-600 text-3xl mb-2"></i>
+                        <h3 class="text-2xl font-bold text-blue-600">0</h3>
+                        <p class="text-sm text-gray-600">Sangat Puas</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center">
+                        <i class="fas fa-thumbs-up text-green-600 text-3xl mb-2"></i>
+                        <h3 class="text-2xl font-bold text-green-600">0</h3>
+                        <p class="text-sm text-gray-600">Puas</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4 text-center">
+                        <i class="fas fa-meh text-amber-600 text-3xl mb-2"></i>
+                        <h3 class="text-2xl font-bold text-amber-600">0</h3>
+                        <p class="text-sm text-gray-600">Cukup</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 text-center">
+                        <i class="fas fa-frown text-red-600 text-3xl mb-2"></i>
+                        <h3 class="text-2xl font-bold text-red-600">0</h3>
+                        <p class="text-sm text-gray-600">Kurang Puas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl shadow-md">
+            <div class="p-5 border-b border-gray-200">
+                <h5 class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-bolt text-amber-600 mr-2"></i>
+                    Aksi Cepat
+                </h5>
+            </div>
+            <div class="p-5">
+                <div class="flex flex-col gap-3">
+                    <button class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        Buat Survey Baru
+                    </button>
+                    <button class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        Lihat Analisis
+                    </button>
+                    <button class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center">
+                        <i class="fas fa-file-export mr-2"></i>
+                        Export Laporan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-md">
+            <div class="p-5 border-b border-gray-200">
+                <h5 class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-history text-purple-600 mr-2"></i>
+                    Aktivitas Terbaru
+                </h5>
+            </div>
+            <div class="p-5">
+                <div class="text-center py-12">
+                    <div class="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-clipboard-list text-gray-400 text-4xl"></i>
+                    </div>
+                    <h6 class="text-gray-600 font-medium mb-2">Belum Ada Aktivitas</h6>
+                    <p class="text-gray-500 text-sm">Mulai buat survey untuk melihat aktivitas di sini</p>
+                    <button class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                        <i class="fas fa-plus mr-2"></i>
+                        Buat Survey Pertama
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animation to stat cards
+        const statCards = document.querySelectorAll('.shadow-md');
+        statCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.5s ease';
+                
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 50);
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}
+

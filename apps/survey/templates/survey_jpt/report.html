@@ -1,0 +1,188 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Laporan Penilaian JPT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="bg-white rounded-xl p-6 shadow-lg mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="bg-purple-100 p-3 rounded-lg">
+                    <i class="fas fa-chart-bar text-purple-600 text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Laporan Penilaian JPT</h1>
+                    <p class="text-gray-600 mt-1">Analisis dan statistik hasil penilaian JPT</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'survey:penilaian_list' %}" 
+                   class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Kembali</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Penilaian</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_penilaian }}</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-lg">
+                    <i class="fas fa-clipboard-list text-blue-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Rata-rata Kepemimpinan</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ avg_scores.avg_kepemimpinan|floatformat:2|default:"0.00" }}</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-lg">
+                    <i class="fas fa-crown text-green-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Rata-rata Kerjasama</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ avg_scores.avg_kerjasama|floatformat:2|default:"0.00" }}</p>
+                </div>
+                <div class="bg-yellow-100 p-3 rounded-lg">
+                    <i class="fas fa-handshake text-yellow-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Rata-rata Komunikasi</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ avg_scores.avg_komunikasi|floatformat:2|default:"0.00" }}</p>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-lg">
+                    <i class="fas fa-comments text-purple-600"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Status Distribution -->
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Distribusi Status</h3>
+            {% if status_stats %}
+                <div class="space-y-3">
+                    {% for stat in status_stats %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-medium text-gray-700">{{ stat.status|capfirst }}</span>
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">
+                            {{ stat.count }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-center py-8">Belum ada data penilaian</p>
+            {% endif %}
+        </div>
+
+        <!-- Category Distribution -->
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Distribusi Kategori Nilai</h3>
+            {% if kategori_stats %}
+                <div class="space-y-3">
+                    {% for kategori, count in kategori_stats.items %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-medium text-gray-700">{{ kategori }}</span>
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
+                            {{ count }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-center py-8">Belum ada data kategori</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Penilaian -->
+    <div class="bg-white rounded-xl p-6 shadow-lg">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Penilaian Terbaru</h3>
+        {% if recent_penilaian %}
+            <div class="overflow-x-auto">
+                <table class="w-full table-auto border-collapse border border-gray-300">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="border border-gray-300 px-4 py-2 text-left">Yang Dinilai</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left">Penilai</th>
+                            <th class="border border-gray-300 px-4 py-2 text-center">Rata-rata</th>
+                            <th class="border border-gray-300 px-4 py-2 text-center">Kategori</th>
+                            <th class="border border-gray-300 px-4 py-2 text-center">Status</th>
+                            <th class="border border-gray-300 px-4 py-2 text-center">Tanggal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white">
+                        {% for penilaian in recent_penilaian %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="border border-gray-300 px-4 py-2">
+                                <div>
+                                    <div class="font-medium text-gray-900">{{ penilaian.nama_dinilai }}</div>
+                                    <div class="text-sm text-gray-500">{{ penilaian.jabatan_dinilai }}</div>
+                                </div>
+                            </td>
+                            <td class="border border-gray-300 px-4 py-2">
+                                <div>
+                                    <div class="font-medium text-gray-900">{{ penilaian.nama_penilai }}</div>
+                                    <div class="text-sm text-gray-500">{{ penilaian.jabatan_penilai }}</div>
+                                </div>
+                            </td>
+                            <td class="border border-gray-300 px-4 py-2 text-center">
+                                <span class="font-mono text-sm font-medium">{{ penilaian.rata_rata }}</span>
+                            </td>
+                            <td class="border border-gray-300 px-4 py-2 text-center">
+                                <span class="px-2 py-1 text-xs font-medium rounded-full
+                                    {% if penilaian.kategori_nilai == 'Sangat Baik' %}bg-green-100 text-green-800
+                                    {% elif penilaian.kategori_nilai == 'Baik' %}bg-blue-100 text-blue-800
+                                    {% elif penilaian.kategori_nilai == 'Cukup' %}bg-yellow-100 text-yellow-800
+                                    {% elif penilaian.kategori_nilai == 'Kurang' %}bg-orange-100 text-orange-800
+                                    {% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ penilaian.kategori_nilai }}
+                                </span>
+                            </td>
+                            <td class="border border-gray-300 px-4 py-2 text-center">
+                                <span class="px-2 py-1 text-xs font-medium rounded-full
+                                    {% if penilaian.status == 'draft' %}bg-gray-100 text-gray-800
+                                    {% elif penilaian.status == 'submitted' %}bg-blue-100 text-blue-800
+                                    {% elif penilaian.status == 'reviewed' %}bg-yellow-100 text-yellow-800
+                                    {% elif penilaian.status == 'approved' %}bg-green-100 text-green-800
+                                    {% endif %}">
+                                    {{ penilaian.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="border border-gray-300 px-4 py-2 text-center text-sm text-gray-600">
+                                {{ penilaian.created_at|date:"d/m/Y" }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-gray-500 text-center py-8">Belum ada data penilaian</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block page_title %}Manajemen Module{% endblock %}
+
+{% block content %}
+{% has_permission 'pengaturan' 'permission_dashboard' 'view' as can_back_dashboard %}
+{% has_permission 'pengaturan' 'permission_module' 'create' as can_create %}
+{% has_permission 'pengaturan' 'permission_module' 'export' as can_export %}
+{% has_permission 'pengaturan' 'permission_module' 'bulk_delete' as can_bulk_delete %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-th-large mr-2"></i> Manajemen Module
+        </h2>
+        <p class="text-gray-500">Kelola sidebar modules seperti Dashboard, Pegawai, SIASN</p>
+    </div>
+    <div class="flex gap-2">
+        {% if can_back_dashboard %}
+        <a href="{% url 'manajemen_aplikasi:dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali
+        </a>
+        {% endif %}
+        {% if can_create %}
+        <a href="{% url 'manajemen_aplikasi:module_create' %}" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i> Tambah Module
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    {% include 'includes/datatable_filters.html' with show_search=True search_placeholder="Cari nama/label module..." show_status_filter=False %}
+
+    {% include 'includes/datatable_bulk_actions.html' with show_clear=True show_copy=True show_export=can_export show_print=True show_delete=can_bulk_delete export_formats="csv,excel,pdf" %}
+
+    <div id="table-container">
+        {% include 'manajemen_aplikasi/access/ma_ap_modules/partials/_table.html' %}
+    </div>
+</div>
+
+<div class="mt-5">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-info-circle mr-2"></i> Info:
+        </strong>
+        <span class="text-blue-700">
+            Modules adalah menu utama di sidebar, contoh: Dashboard, Data Pegawai, SIASN Integration. Order menentukan urutan tampilan di sidebar.
+        </span>
+    </div>
+</div>
+
+<script src="{% static 'js/datatable-helpers.js' %}?v=1.2"></script>
+<script>
+(function(){
+  function initModulesDT(){
+    if (window.modulesListIntegratedDT) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+    window.modulesListIntegratedDT = new DatatableHelper({
+        tableId: 'modules_table',
+        pageKey: 'module_list',
+        saveUrl: '{% url "manajemen_aplikasi:module_list" %}',
+        deleteUrl: '{% url "manajemen_aplikasi:module_list" %}',
+        csrfToken: csrfToken,
+        exportFormats: ['csv','excel','pdf'],
+        entity: 'modules',
+        useToast: true,
+        debug: true
+    });
+    window.modulesListIntegratedDT.init();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initModulesDT);
+  } else {
+    initModulesDT();
+  }
+})();
+</script>
+{% endblock %}

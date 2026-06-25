@@ -1,0 +1,257 @@
+{% load static %}
+{% load django_tables2 %}
+
+<div class="table-responsive">
+    {% if table.data %}
+        <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+            <thead class="table-light">
+                <tr>
+                    <th width="5%">#</th>
+                    <th width="20%">Atasan yang Dinilai</th>
+                    <th width="15%">Jabatan</th>
+                    <th width="15%">Unit Kerja</th>
+                    <th width="12%">Periode</th>
+                    <th width="8%">Rata-rata</th>
+                    <th width="10%">Kategori</th>
+                    <th width="8%">Status</th>
+                    <th width="7%">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in table.page.object_list %}
+                <tr>
+                    <td class="text-center">
+                        {{ table.page.start_index|add:forloop.counter0 }}
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-2">
+                                <div class="avatar-title bg-primary text-white rounded-circle">
+                                    {{ record.nama_dinilai|first|upper }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="fw-bold">{{ record.nama_dinilai }}</div>
+                                <small class="text-muted">{{ record.nip_dinilai }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="text-dark">{{ record.jabatan_dinilai }}</span>
+                    </td>
+                    <td>
+                        <span class="text-muted">{{ record.unit_kerja_dinilai }}</span>
+                    </td>
+                    <td>
+                        <small class="text-muted">
+                            {{ record.periode_mulai|date:"d/m/Y" }} - 
+                            {{ record.periode_selesai|date:"d/m/Y" }}
+                        </small>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <span class="fw-bold me-1">{{ record.rata_rata }}</span>
+                            <div class="rating-stars">
+                                {% for i in "12345" %}
+                                    {% if record.rata_rata >= i|add:0 %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% elif record.rata_rata >= i|add:0|add:-0.5 %}
+                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-muted"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        {% if record.kategori_nilai == 'Sangat Baik' %}
+                            <span class="badge bg-success">{{ record.kategori_nilai }}</span>
+                        {% elif record.kategori_nilai == 'Baik' %}
+                            <span class="badge bg-primary">{{ record.kategori_nilai }}</span>
+                        {% elif record.kategori_nilai == 'Cukup' %}
+                            <span class="badge bg-warning">{{ record.kategori_nilai }}</span>
+                        {% elif record.kategori_nilai == 'Kurang' %}
+                            <span class="badge bg-danger">{{ record.kategori_nilai }}</span>
+                        {% else %}
+                            <span class="badge bg-dark">{{ record.kategori_nilai }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if record.status == 'draft' %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-edit me-1"></i>Draft
+                            </span>
+                        {% elif record.status == 'submitted' %}
+                            <span class="badge bg-info">
+                                <i class="fas fa-paper-plane me-1"></i>Submitted
+                            </span>
+                        {% elif record.status == 'reviewed' %}
+                            <span class="badge bg-warning">
+                                <i class="fas fa-eye me-1"></i>Reviewed
+                            </span>
+                        {% elif record.status == 'approved' %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-check-circle me-1"></i>Approved
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group" role="group">
+                            <!-- Detail Button -->
+                            <a href="{% url 'survey:penilaian_atasan_detail' record.id %}" 
+                               class="btn btn-sm btn-outline-info" 
+                               title="Detail">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            
+                            <!-- Edit Button (only for draft status) -->
+                            {% if record.status == 'draft' %}
+                            <a href="{% url 'survey:penilaian_atasan_edit' record.id %}" 
+                               class="btn btn-sm btn-outline-warning" 
+                               title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        {% if table.page.has_other_pages %}
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="text-muted">
+                Menampilkan {{ table.page.start_index }} - {{ table.page.end_index }} dari {{ table.page.paginator.count }} data
+            </div>
+            <nav aria-label="Table pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if table.page.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" 
+                               href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if request.GET.per_page %}per_page={{ request.GET.per_page }}&{% endif %}page={{ table.page.previous_page_number }}"
+                               hx-get="{% url 'survey:penilaian_atasan_riwayat' %}?{% if search_query %}search={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if request.GET.per_page %}per_page={{ request.GET.per_page }}&{% endif %}page={{ table.page.previous_page_number }}"
+                               hx-target="#table-container"
+                               hx-swap="innerHTML">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in table.page.paginator.page_range %}
+                        {% if table.page.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > table.page.number|add:'-3' and num < table.page.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if request.GET.per_page %}per_page={{ request.GET.per_page }}&{% endif %}page={{ num }}"
+                                   hx-get="{% url 'survey:penilaian_atasan_riwayat' %}?{% if search_query %}search={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if request.GET.per_page %}per_page={{ request.GET.per_page }}&{% endif %}page={{ num }}"
+                                   hx-target="#table-container"
+                                   hx-swap="innerHTML">
+                                    {{ num }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if table.page.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" 
+                               href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if request.GET.per_page %}per_page={{ request.GET.per_page }}&{% endif %}page={{ table.page.next_page_number }}"
+                               hx-get="{% url 'survey:penilaian_atasan_riwayat' %}?{% if search_query %}search={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if request.GET.per_page %}per_page={{ request.GET.per_page }}&{% endif %}page={{ table.page.next_page_number }}"
+                               hx-target="#table-container"
+                               hx-swap="innerHTML">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-clipboard-list fa-3x text-muted"></i>
+            </div>
+            <h5 class="text-muted">Belum Ada Penilaian</h5>
+            <p class="text-muted mb-4">
+                Anda belum membuat penilaian atasan. Mulai buat penilaian pertama Anda.
+            </p>
+            <a href="{% url 'survey:penilaian_atasan_form' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Buat Penilaian Pertama
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.avatar-sm {
+    width: 2rem;
+    height: 2rem;
+}
+
+.avatar-title {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.rating-stars {
+    font-size: 0.75rem;
+}
+
+.rating-stars i {
+    margin-right: 1px;
+}
+
+.table th {
+    background-color: #f8f9fc;
+    border-color: #e3e6f0;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #5a5c69;
+}
+
+.table td {
+    border-color: #e3e6f0;
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.5rem;
+}
+
+.pagination-sm .page-link {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.page-item.active .page-link {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+</style>

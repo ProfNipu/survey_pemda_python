@@ -1,0 +1,30 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block page_title %}404 Not Found{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <div class="bg-white shadow rounded-xl p-8">
+    <div class="flex items-start gap-4">
+      <div class="shrink-0">
+        <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-2xl">
+          <i class="fas fa-search-minus"></i>
+        </div>
+      </div>
+      <div class="grow">
+        <h1 class="text-2xl font-semibold text-gray-800 mb-2">{{ not_found_title|default:'Halaman Tidak Ditemukan' }}</h1>
+        <p class="text-gray-600 mb-4">{{ not_found_message|default:'Maaf, halaman yang Anda cari tidak tersedia atau sudah dipindahkan.' }}</p>
+        <div class="flex gap-2">
+          <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium px-4 py-2 rounded-lg">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali
+          </a>
+          <a href="{% url 'dashboard:index' %}" class="bg-primary hover:bg-primary-600 text-white font-medium px-4 py-2 rounded-lg">
+            <i class="fas fa-home mr-2"></i> Ke Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

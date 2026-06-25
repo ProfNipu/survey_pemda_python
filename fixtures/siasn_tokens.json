@@ -1,0 +1,32 @@
+[
+  {
+    "model": "integrations.wssiasntoken",
+    "pk": 1,
+    "fields": {
+      "production": "sso_token",
+      "mod_date": "2024-11-20T08:46:22Z",
+      "token": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJBUWNPM0V3MVBmQV9MQ0FtY2J6YnRLUEhtcWhLS1dRbnZ1VDl0RUs3akc4In0.eyJleHAiOjE3MzIwMjkwNzIsImlhdCI6MTczMTk4NTg3MiwianRpIjoiMjIwYzM0ZDUtMzIyMi00MDM4LWJkZGUtZDdiMjhiOTUyYWM1IiwiaXNzIjoiaHR0cHM6Ly9zc28tc2lhc24uYmtuLmdvLmlkL2F1dGgvcmVhbG1zL3B1YmxpYy1zaWFzbiIsImF1ZCI6WyJpZGlzIiwiYWNjb3VudCJdLCJzdWIiOiI4OWU1MzdkYS1iNDY0LTRlYWMtYTE2My1jZGI2YWQwYmY2MmEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJwZXNpc2lyc2VsYXRhbndzIiwic2Vzc2lvbl9zdGF0ZSI6IjE3YmYzZDUwLWIwYWUtNDg5ZC05YTJiLWVhYzZmMzVjM2E3YiIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsicm9sZTpzaWFzbi1pbnN0YW5zaTpwZXJlbWFqYWFuOm9wZXJhdG9yIl19fQ.truncated_for_brevity",
+      "token_type": "Bearer",
+      "statis": null,
+      "expires_at": "2024-12-01T08:46:22Z",
+      "expires_in": 3600,
+      "created_at": "2024-11-20T08:46:22Z",
+      "updated_at": "2024-11-20T08:46:22Z"
+    }
+  },
+  {
+    "model": "integrations.wssiasntoken", 
+    "pk": 2,
+    "fields": {
+      "production": "apikey_token",
+      "mod_date": "2025-09-30T14:28:41Z",
+      "token": "eyJ4NXQiOiJNell4TW1Ga09HWXdNV0kwWldObU5EY3hOR1l3WW1NNFpUQTNNV0kyTkRBelpHUXpOR00wWkdSbE5qSmtPREZrWkRSaU9URmtNV0ZoTXpVMlpHVmxOZyIsImtpZCI6Ik16WXhNbUZrT0dZd01XSTBaV05tTkRjeE5HWXdZbU00WlRBM01XSTJOREF6WkdRek5HTTBaR1JsTmpKa09ERmtaRFJpT1RGa01XRmhNelUyWkdWbE5nX1JTMjU2IiwiYWxnIjoiUlMyNTYifQ.truncated_for_brevity",
+      "token_type": "Bearer", 
+      "statis": null,
+      "expires_at": "2025-10-30T14:28:41Z",
+      "expires_in": 2592000,
+      "created_at": "2025-09-30T14:28:41Z",
+      "updated_at": "2025-09-30T14:28:41Z"
+    }
+  }
+]

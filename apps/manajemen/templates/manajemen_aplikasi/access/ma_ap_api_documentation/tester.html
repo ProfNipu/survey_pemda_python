@@ -1,0 +1,207 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block page_title %}API Tester{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-vial mr-2"></i> API Tester
+        </h2>
+        <p class="text-gray-500">Test endpoint internal (AJAX/JSON) langsung dari UI</p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'manajemen_aplikasi:api_documentation_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali
+        </a>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Endpoint</label>
+                <select id="api-endpoint-select" class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all bg-white">
+                    <option value="">-- pilih endpoint --</option>
+                    {% for e in endpoints %}
+                        <option
+                            value="{{ e.id }}"
+                            data-method="{{ e.method_type|default:'' }}"
+                            data-url="{{ e.url|default:'' }}"
+                            data-parameters='{{ e.parameters|default:""|escapejs }}'
+                            data-description='{{ e.description|default:""|escapejs }}'
+                        >{{ e.method_type }} {{ e.url }}</option>
+                    {% endfor %}
+                </select>
+                <div id="api-endpoint-desc" class="mt-2 text-xs text-gray-500"></div>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Method</label>
+                <input id="api-method" type="text" class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 text-gray-800" readonly>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">URL</label>
+                <input id="api-url" type="text" class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 text-gray-800" readonly>
+                <div class="mt-2 text-xs text-gray-500">Tips: endpoint yang diawali <code>/</code> akan dipanggil ke domain yang sama.</div>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Query Params (JSON)</label>
+                <textarea id="api-params" rows="8" class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all font-mono text-sm" placeholder='{"q":"", "page":1, "page_size":10}'></textarea>
+                <div class="mt-2 text-xs text-gray-500">Format wajib JSON object. Untuk param list (mis. <code>id_jabatan</code>), isi sebagai array: <code>{"id_jabatan":[1,2]}</code>.</div>
+            </div>
+
+            <div class="flex gap-2">
+                <button id="btn-test" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                    <i class="fas fa-play mr-2"></i> Test
+                </button>
+                <a id="btn-open" href="#" target="_blank" rel="noopener" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors">
+                    <i class="fas fa-external-link-alt mr-2"></i> Buka
+                </a>
+            </div>
+        </div>
+
+        <div>
+            <div class="mb-3 flex justify-between items-center">
+                <div class="text-sm font-medium text-gray-700">Response</div>
+                <div id="api-status" class="text-xs text-gray-500"></div>
+            </div>
+            <pre id="api-response" class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-xs text-gray-800 overflow-auto max-h-[560px]">Pilih endpoint lalu klik Test.</pre>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  const sel = document.getElementById('api-endpoint-select');
+  const methodEl = document.getElementById('api-method');
+  const urlEl = document.getElementById('api-url');
+  const paramsEl = document.getElementById('api-params');
+  const descEl = document.getElementById('api-endpoint-desc');
+  const respEl = document.getElementById('api-response');
+  const statusEl = document.getElementById('api-status');
+  const btnTest = document.getElementById('btn-test');
+  const btnOpen = document.getElementById('btn-open');
+
+  function safeJsonParse(text) {
+    if (!text) return null;
+    try { return JSON.parse(text); } catch(e) { return null; }
+  }
+
+  function buildUrl(baseUrl, paramsObj) {
+    if (!baseUrl) return '';
+    const url = new URL(baseUrl, window.location.origin);
+    if (paramsObj && typeof paramsObj === 'object') {
+      Object.entries(paramsObj).forEach(([k, v]) => {
+        if (v === null || typeof v === 'undefined' || v === '') return;
+        if (Array.isArray(v)) {
+          v.forEach(item => {
+            if (item === null || typeof item === 'undefined' || item === '') return;
+            url.searchParams.append(k, String(item));
+          });
+        } else {
+          url.searchParams.set(k, String(v));
+        }
+      });
+    }
+    return url.pathname + (url.search ? url.search : '');
+  }
+
+  function updateFromSelection() {
+    const opt = sel.options[sel.selectedIndex];
+    const method = (opt?.dataset?.method || '').trim();
+    const url = (opt?.dataset?.url || '').trim();
+    const parametersRaw = opt?.dataset?.parameters || '';
+    const desc = opt?.dataset?.description || '';
+
+    methodEl.value = method;
+    urlEl.value = url;
+    descEl.textContent = desc;
+
+    const parsed = safeJsonParse(parametersRaw);
+    if (parsed && typeof parsed === 'object') {
+      const query = parsed.query || {};
+      paramsEl.value = JSON.stringify(query, null, 2);
+    } else {
+      paramsEl.value = '';
+    }
+
+    btnOpen.href = url ? url : '#';
+    statusEl.textContent = '';
+    respEl.textContent = 'Pilih endpoint lalu klik Test.';
+  }
+
+  async function doTest() {
+    const method = (methodEl.value || '').trim().toUpperCase();
+    const baseUrl = (urlEl.value || '').trim();
+    if (!method || !baseUrl) {
+      respEl.textContent = 'Pilih endpoint terlebih dahulu.';
+      return;
+    }
+
+    const paramsText = (paramsEl.value || '').trim();
+    let paramsObj = {};
+    if (paramsText) {
+      try {
+        paramsObj = JSON.parse(paramsText);
+        if (!paramsObj || typeof paramsObj !== 'object' || Array.isArray(paramsObj)) {
+          throw new Error('Query params harus JSON object');
+        }
+      } catch (e) {
+        respEl.textContent = 'Invalid JSON pada Query Params: ' + (e?.message || e);
+        return;
+      }
+    }
+
+    const relativeUrl = buildUrl(baseUrl, paramsObj);
+    btnOpen.href = relativeUrl;
+
+    statusEl.textContent = 'Loading...';
+    respEl.textContent = '';
+
+    try {
+      const res = await fetch(relativeUrl, {
+        method: method === 'GET' ? 'GET' : method,
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+      });
+
+      const contentType = res.headers.get('content-type') || '';
+      let bodyText = await res.text();
+
+      statusEl.textContent = res.status + ' ' + res.statusText;
+
+      if (contentType.includes('application/json')) {
+        try {
+          const data = JSON.parse(bodyText || '{}');
+          respEl.textContent = JSON.stringify(data, null, 2);
+          return;
+        } catch (e) {
+          respEl.textContent = bodyText;
+          return;
+        }
+      }
+
+      respEl.textContent = bodyText;
+    } catch (e) {
+      statusEl.textContent = 'Error';
+      respEl.textContent = String(e);
+    }
+  }
+
+  sel.addEventListener('change', updateFromSelection);
+  btnTest.addEventListener('click', doTest);
+
+  updateFromSelection();
+})();
+</script>
+{% endblock %}

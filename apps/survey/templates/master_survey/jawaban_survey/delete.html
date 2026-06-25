@@ -1,0 +1,98 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Hapus Jawaban Survey{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl p-6 shadow-lg mb-6">
+        <div class="flex items-center space-x-4">
+            <div class="bg-red-100 p-3 rounded-lg">
+                <i class="fas fa-trash text-red-600 text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Hapus Jawaban Survey</h1>
+                <p class="text-gray-600 mt-1">Konfirmasi penghapusan jawaban survey</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Form -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="mb-6">
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-exclamation-triangle text-red-500 mt-0.5"></i>
+                    <div class="text-sm text-red-700">
+                        <p class="font-medium mb-1">Peringatan!</p>
+                        <p>Anda akan menghapus jawaban survey berikut:</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jawaban Info -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Responden Penilai</label>
+                        <div class="text-gray-900 font-mono">{{ obj.responden.nip_pegawaiPenilai }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Responden Dinilai</label>
+                        <div class="text-gray-900 font-mono">{{ obj.responden.nip_pegawaiDinilai }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Survey</label>
+                        <div class="text-gray-900">{{ obj.pertanyaan.jenis_survey.nama }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kode Pertanyaan</label>
+                        <div class="text-gray-900">{{ obj.pertanyaan.kode_pertanyaan }}</div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pertanyaan</label>
+                        <div class="text-gray-900">{{ obj.pertanyaan.pertanyaan }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nilai</label>
+                        <div class="flex items-center space-x-2">
+                            {% if obj.nilai == 1 %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">1 - Sangat Kurang</span>
+                            {% elif obj.nilai == 2 %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">2 - Kurang</span>
+                            {% elif obj.nilai == 3 %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">3 - Cukup</span>
+                            {% elif obj.nilai == 4 %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">4 - Baik</span>
+                            {% elif obj.nilai == 5 %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">5 - Sangat Baik</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nilai Terbobot</label>
+                        <div class="text-gray-900 font-mono">{{ obj.nilai_terbobot|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" class="flex items-center justify-between">
+            {% csrf_token %}
+            
+            <a href="{% url 'survey:jawaban_survey_list' %}" 
+               class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
+                <i class="fas fa-arrow-left"></i>
+                <span>Batal</span>
+            </a>
+            
+            <button type="submit" 
+                    class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
+                <i class="fas fa-trash"></i>
+                <span>Ya, Hapus Jawaban</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

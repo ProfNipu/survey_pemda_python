@@ -1,0 +1,129 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    {% if edit_mode %}Edit Jawaban Survey{% else %}Tambah Jawaban Survey{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-6">
+    <!-- Header -->
+    {% include 'includes/crud_form_header.html' with title='Jawaban Survey' edit_mode=edit_mode icon='fas fa-clipboard-list' back_url='survey:jawaban_survey_list' %}
+
+    <!-- Form -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <form method="post" 
+              hx-post="{% if edit_mode %}{% url 'survey:jawaban_survey_edit' obj.id %}{% else %}{% url 'survey:jawaban_survey_create' %}{% endif %}"
+              hx-target="this"
+              hx-swap="outerHTML"
+              class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Responden -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.responden.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.responden.label }}
+                    </label>
+                    {{ form.responden }}
+                    {% if form.responden.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.responden.help_text }}</p>
+                    {% endif %}
+                    {% if form.responden.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.responden.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Pertanyaan -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.pertanyaan.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.pertanyaan.label }}
+                    </label>
+                    {{ form.pertanyaan }}
+                    {% if form.pertanyaan.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.pertanyaan.help_text }}</p>
+                    {% endif %}
+                    {% if form.pertanyaan.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.pertanyaan.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Nilai -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.nilai.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.nilai.label }}
+                    </label>
+                    {{ form.nilai }}
+                    {% if form.nilai.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.nilai.help_text }}</p>
+                    {% endif %}
+                    {% if form.nilai.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.nilai.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            {% include 'includes/crud_form_actions.html' with edit_mode=edit_mode back_url='survey:jawaban_survey_list' %}
+        </form>
+    </div>
+
+    <!-- Example Box -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+        <div class="flex items-start space-x-3">
+            <i class="fas fa-lightbulb text-blue-500 mt-0.5"></i>
+            <div class="text-sm text-blue-700">
+                <p class="font-medium mb-2">Skala Penilaian:</p>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-2 text-blue-600">
+                    <div class="text-center p-2 bg-red-100 rounded">
+                        <div class="font-medium">1</div>
+                        <div class="text-xs">Sangat Kurang</div>
+                    </div>
+                    <div class="text-center p-2 bg-orange-100 rounded">
+                        <div class="font-medium">2</div>
+                        <div class="text-xs">Kurang</div>
+                    </div>
+                    <div class="text-center p-2 bg-yellow-100 rounded">
+                        <div class="font-medium">3</div>
+                        <div class="text-xs">Cukup</div>
+                    </div>
+                    <div class="text-center p-2 bg-blue-100 rounded">
+                        <div class="font-medium">4</div>
+                        <div class="text-xs">Baik</div>
+                    </div>
+                    <div class="text-center p-2 bg-green-100 rounded">
+                        <div class="font-medium">5</div>
+                        <div class="text-xs">Sangat Baik</div>
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-blue-600">
+                    <strong>Catatan:</strong> Nilai terbobot akan dihitung otomatis berdasarkan bobot pertanyaan
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Bind form with SweetAlert
+    bindFormSwal({
+        successEvent: 'jawaban-survey-form-success',
+        invalidEvent: 'jawaban-survey-form-invalid',
+        entityName: 'Jawaban Survey'
+    });
+});
+</script>
+{% endblock %}

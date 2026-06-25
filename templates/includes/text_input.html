@@ -1,0 +1,33 @@
+<!-- Text Input Component (Reusable) -->
+<!-- Usage: include 'includes/text_input.html' with field_id='username' field_name='username' field_type='text' placeholder='Enter username' icon='user' label='Username' required=True autofocus=True -->
+
+<div class="mb-5">
+    {% if label %}
+    <label class="block text-gray-700 font-medium mb-2">
+        {% if icon %}<i class="fas fa-{{ icon }} mr-2"></i>{% endif %}{{ label }}
+    </label>
+    {% endif %}
+    
+    <div class="relative">
+        {% if icon %}
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <i class="fas fa-{{ icon }} text-gray-400"></i>
+        </div>
+        {% endif %}
+        <input 
+            type="{{ field_type|default:'text' }}" 
+            id="{{ field_id }}"
+            name="{{ field_name }}"
+            {% if required %}required{% endif %}
+            {% if autofocus %}autofocus{% endif %}
+            {% if minlength %}minlength="{{ minlength }}"{% endif %}
+            {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
+            class="w-full {% if icon %}pl-12{% else %}pl-4{% endif %} pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            placeholder="{{ placeholder }}"
+        >
+    </div>
+    
+    {% if help_text %}
+    <p class="text-xs text-gray-500 mt-1">{{ help_text }}</p>
+    {% endif %}
+</div>

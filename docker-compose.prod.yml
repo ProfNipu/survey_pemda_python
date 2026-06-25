@@ -1,0 +1,83 @@
+# Docker Compose Production - survey_pemda_python
+# Django Application for VPS Deployment
+
+services:
+  survey_pemda_python:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: survey-pemda-python:latest
+    container_name: survey_pemda_python_app
+    restart: unless-stopped
+    command: gunicorn core.wsgi:application --config gunicorn.conf.py
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - logs_volume:/app/logs
+    ports:
+      - "8006:8000"
+    environment:
+      - DEBUG=0
+      - DJANGO_SETTINGS_MODULE=core.settings
+      - SECRET_KEY=${SECRET_KEY:-your-super-secret-key-change-in-production}
+      - ALLOWED_HOSTS=survey-pemda-python.local,172.16.30.139,localhost
+      - SECURE_SSL_REDIRECT=False
+
+      # Database (shared MySQL)
+      - DB_HOST=mysql-main
+      - DB_NAME=survey_pemda_python_db
+      - DB_USER=root
+      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD:-5406@Pessel!23#}
+      - DB_PORT=3306
+
+      # Redis (shared)
+      - REDIS_HOST=redis-main
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-5406@Pessel!23#}
+      - REDIS_DB=4
+
+      # Performance
+      - DJANGO_MAX_REQUEST_SIZE=134217728
+      - GUNICORN_TIMEOUT=300
+      - GUNICORN_WORKERS=4
+      - GUNICORN_WORKER_CLASS=sync
+
+      # Branding
+      - APP_NAME=survey-pemda-python
+      - APP_LONG_NAME=Survey Pemda (Python)
+      - APP_INSTANSI=Pemerintah Kabupaten Pesisir Selatan
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '1.0'
+    networks:
+      - proxy-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+volumes:
+  static_volume:
+    name: survey_pemda_python_static
+  media_volume:
+    name: survey_pemda_python_media
+  logs_volume:
+    name: survey_pemda_python_logs
+
+networks:
+  proxy-network:
+    external: true
+    name: proxy-network
+

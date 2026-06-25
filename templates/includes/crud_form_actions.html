@@ -1,0 +1,24 @@
+<hr class="my-6 border-gray-200">
+
+{% load permission_tags %}
+
+<div class="flex gap-3">
+  <button type="submit" class="flex-1 bg-primary hover:bg-primary-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+    <i class="fas fa-save mr-2"></i> {{ submit_label|default:'Simpan' }}
+  </button>
+  {% if show_delete|default:False and delete_url %}
+    {% if not delete_perm or request.user|can:delete_perm %}
+      <a href="{{ delete_url }}"
+         class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors text-center"
+         data-confirm="{{ delete_confirm|default:'Yakin ingin menghapus data ini?' }}"
+         onclick="return confirm(this.dataset.confirm);">
+        <i class="fas fa-trash mr-2"></i> {{ delete_label|default:'Hapus' }}
+      </a>
+    {% endif %}
+  {% endif %}
+  {% if show_cancel|default:True %}
+  <a href="{{ cancel_url }}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-colors text-center">
+    <i class="fas fa-times mr-2"></i> {{ cancel_label|default:'Batal' }}
+  </a>
+  {% endif %}
+</div>

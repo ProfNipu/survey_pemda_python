@@ -1,0 +1,30 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block page_title %}400 Bad Request{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <div class="bg-white shadow rounded-xl p-8">
+    <div class="flex items-start gap-4">
+      <div class="shrink-0">
+        <div class="w-12 h-12 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center text-2xl">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+      </div>
+      <div class="grow">
+        <h1 class="text-2xl font-semibold text-gray-800 mb-2">{{ bad_request_title|default:'Permintaan Tidak Valid' }}</h1>
+        <p class="text-gray-600 mb-4">{{ bad_request_message|default:'Permintaan tidak dapat diproses. Periksa kembali data yang Anda kirim.' }}</p>
+        <div class="flex gap-2">
+          <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium px-4 py-2 rounded-lg">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali
+          </a>
+          <a href="{% url 'dashboard:index' %}" class="bg-primary hover:bg-primary-600 text-white font-medium px-4 py-2 rounded-lg">
+            <i class="fas fa-home mr-2"></i> Ke Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

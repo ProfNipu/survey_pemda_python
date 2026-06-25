@@ -1,0 +1,36 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block page_title %}403 Forbidden{% endblock %}
+
+{% block content %}
+{% with hide_topbar_toggle=True %}
+{% has_permission 'pengaturan' 'permission_dashboard' 'view' as can_permission_dashboard %}
+<div class="max-w-3xl mx-auto">
+  <div class="bg-white shadow rounded-xl p-8">
+    <div class="flex items-start gap-4">
+      <div class="shrink-0">
+        <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-2xl">
+          <i class="fas fa-ban"></i>
+        </div>
+      </div>
+      <div class="grow">
+        <h1 class="text-2xl font-semibold text-gray-800 mb-2">{{ forbidden_title|default:'Tidak Memiliki Akses' }}</h1>
+        <p class="text-gray-600 mb-4">{{ forbidden_message|default:'Anda tidak memiliki permission untuk mengakses halaman ini. Jika Anda membutuhkan akses, hubungi administrator.' }}</p>
+        <div class="flex gap-2">
+          <a href="#" onclick="(function(){try{var cur=window.location.href;var ref=(document.referrer||'').trim();if(ref && ref!==cur){window.location.href=ref;return;}window.location.href='/';}catch(e){window.location.href='/';}})();return false;" class="bg-gray-500 hover:bg-gray-600 text-white font-medium px-4 py-2 rounded-lg">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali
+          </a>
+          {% if can_permission_dashboard %}
+          <a href="{% url 'manajemen_aplikasi:dashboard' %}" class="bg-primary hover:bg-primary-600 text-white font-medium px-4 py-2 rounded-lg">
+            <i class="fas fa-home mr-2"></i> Ke Dashboard Permission
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'base_dashboard.html' %}
+{% load permission_tags %}
+
+{% block page_title %}{% if edit_mode %}Edit{% else %}Tambah{% endif %} Function{% endblock %}
+
+{% block content %}
+{% has_permission 'pengaturan' 'permission_function' 'view' as can_back_list %}
+{% url 'manajemen_aplikasi:function_list' as back_url %}
+{% include 'includes/crud_form_header.html' with icon_class='fas fa-bolt' title=edit_mode|yesno:'Edit Function,Tambah Function' subtitle=edit_mode|yesno:'Update function/action baru,Buat function/action baru' back_url=back_url show_back=can_back_list %}
+
+<div id="function-form-container">
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-3xl mx-auto">
+    <form method="post" novalidate hx-post="{{ request.path }}" hx-trigger="submit" hx-target="#function-form-container" hx-select="#function-form-container" hx-swap="outerHTML">
+        {% csrf_token %}
+        {% if errors_list %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="text-red-700 font-medium mb-2">
+                <i class="fas fa-exclamation-circle mr-1"></i> Periksa kembali input Anda.
+            </div>
+            <ul class="list-disc list-inside text-red-700">
+                {% for e in errors_list %}
+                    <li>{{ e }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {% if edit_mode and rule_count %}
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <div class="text-amber-800 font-medium mb-1">
+                <i class="fas fa-lock mr-1"></i> Nama fungsi dikunci
+            </div>
+            <p class="text-amber-700 text-sm">Masih terhubung ke {{ rule_count }} rule. Anda masih bisa mengubah <strong>Label</strong> dan <strong>Deskripsi</strong>.</p>
+        </div>
+        {% endif %}
+        
+        <div class="mb-6">
+            <label for="nama_fungsi" class="block font-medium text-gray-700 mb-2">
+                Nama Fungsi <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(lowercase, no spaces, e.g: view, create, edit)</span>
+            </label>
+            <input 
+                type="text" 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all {% if edit_mode and rule_count %}bg-gray-100 text-gray-500 cursor-not-allowed focus:border-gray-200 focus:ring-0{% endif %}" 
+                id="nama_fungsi" 
+                name="nama_fungsi" 
+                value="{% if function %}{{ function.nama_fungsi }}{% endif %}"
+                {% if edit_mode and rule_count %}readonly aria-readonly="true" data-readonly="true" onkeydown="return false;"{% endif %}
+                placeholder="e.g: view, create, edit, delete"
+            >
+            {% if edit_mode and rule_count %}
+            <small class="text-gray-500 text-sm mt-1 block"><i class="fas fa-lock mr-1"></i> Nama fungsi tidak bisa diubah</small>
+            {% endif %}
+        </div>
+        
+        <div class="mb-6">
+            <label for="label_fungsi" class="block font-medium text-gray-700 mb-2">
+                Label Fungsi <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(Display name, e.g: Lihat, Tambah, Edit)</span>
+            </label>
+            <input 
+                type="text" 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="label_fungsi" 
+                name="label_fungsi" 
+                value="{% if function %}{{ function.label_fungsi }}{% endif %}"
+                placeholder="e.g: Lihat, Tambah, Edit, Hapus"
+            >
+        </div>
+        
+        <div class="mb-6">
+            <label for="deskripsi_fungsi" class="block font-medium text-gray-700 mb-2">
+                Deskripsi
+                <span class="text-sm text-gray-500 font-normal">(optional)</span>
+            </label>
+            <textarea 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="deskripsi_fungsi" 
+                name="deskripsi_fungsi" 
+                rows="3"
+                placeholder="Deskripsi singkat tentang function ini..."
+            >{% if function %}{{ function.deskripsi_fungsi }}{% endif %}</textarea>
+        </div>
+        
+        {% url 'manajemen_aplikasi:function_list' as cancel_url %}
+        {% include 'includes/crud_form_actions.html' with submit_label=edit_mode|yesno:'Update Function,Simpan Function' cancel_url=cancel_url cancel_label='Batal' show_cancel=can_back_list %}
+    </form>
+</div>
+
+<script>
+(function(){
+  bindFormSwal('#function-form-container', {
+    successEvent: 'function-form-success',
+    invalidEvent: 'function-form-invalid',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    confirmButtonText: 'OK',
+    scrollToTop: true,
+    dedupeInvalid: false
+  });
+})();
+</script>
+</div>
+
+<div class="mt-5 max-w-3xl mx-auto">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-lightbulb mr-2"></i> Contoh Functions:
+        </strong>
+        <ul class="mt-2 mb-0 space-y-1 text-blue-700 text-sm list-disc list-inside">
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">view</code> - Lihat/menampilkan data</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">create</code> - Menambah data baru</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">edit</code> - Mengubah data</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">delete</code> - Menghapus data</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">export</code> - Export data ke file</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">import</code> - Import data dari file</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">approve</code> - Menyetujui data/pengajuan</li>
+            <li><code class="bg-blue-100 px-2 py-0.5 rounded">reject</code> - Menolak data/pengajuan</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

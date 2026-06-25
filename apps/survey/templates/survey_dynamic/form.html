@@ -1,0 +1,311 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    {{ survey_config.nama_survey }} - {{ app_name }}
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .survey-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .pegawai-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .pegawai-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #6c757d;
+        }
+        
+        .pegawai-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #212529;
+        }
+        
+        .pegawai-info p {
+            margin: 2px 0;
+            font-size: 13px;
+            color: #6c757d;
+        }
+        
+        .question-section {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .question-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 10px;
+        }
+        
+        .question-text {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        
+        .slider-container {
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #dc3545 0%, #fd7e14 25%, #ffc107 50%, #28a745 75%, #198754 100%);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #007bff;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #007bff;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .slider-value {
+            background: #ffc107;
+            color: #212529;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-left: 4px solid #2196f3;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .year-badge {
+            background: #007bff;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="text-center mb-4">
+        <h1 class="h3 mb-3">{{ survey_config.nama_survey }}</h1>
+        <div class="year-badge">
+            <i class="fas fa-calendar-alt"></i>
+            Tahun: {{ survey_config.tahun }}
+        </div>
+        {% if survey_config.deskripsi %}
+            <p class="text-muted">{{ survey_config.deskripsi }}</p>
+        {% endif %}
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Pegawai yang Akan Dinilai -->
+        <div class="survey-card">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="pegawai-card">
+                        {% if survey_config.show_foto_pegawai %}
+                            <div class="pegawai-photo">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                        <div class="pegawai-info flex-grow-1">
+                            <h4>
+                                {{ form.nama_dinilai }}
+                                {% if form.nama_dinilai.errors %}
+                                    <div class="text-danger small">{{ form.nama_dinilai.errors.0 }}</div>
+                                {% endif %}
+                            </h4>
+                            <p><strong>NIP:</strong> 
+                                {{ form.nip_dinilai }}
+                                {% if form.nip_dinilai.errors %}
+                                    <div class="text-danger small">{{ form.nip_dinilai.errors.0 }}</div>
+                                {% endif %}
+                            </p>
+                            <p><strong>Jabatan:</strong> 
+                                {{ form.jabatan_dinilai }}
+                                {% if form.jabatan_dinilai.errors %}
+                                    <div class="text-danger small">{{ form.jabatan_dinilai.errors.0 }}</div>
+                                {% endif %}
+                            </p>
+                            <p><strong>Unit Kerja:</strong> 
+                                {{ form.unit_kerja_dinilai }}
+                                {% if form.unit_kerja_dinilai.errors %}
+                                    <div class="text-danger small">{{ form.unit_kerja_dinilai.errors.0 }}</div>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <strong>Pegawai yang Akan Dinilai:</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Info Box -->
+        <div class="info-box">
+            <div class="text-primary fw-bold mb-2">
+                <i class="fas fa-info-circle"></i> Petunjuk:
+            </div>
+            <div class="text-primary">
+                Silakan berikan penilaian untuk setiap aspek berikut dengan menggeser slider dari {{ aspek_list.0.skala_min }} ({{ aspek_list.0.label_min }}) hingga {{ aspek_list.0.skala_max }} ({{ aspek_list.0.label_max }}).
+            </div>
+        </div>
+        
+        <!-- Aspek Penilaian Dinamis -->
+        {% for aspek in aspek_list %}
+            <div class="question-section">
+                <div class="question-title">
+                    {{ forloop.counter }}. {{ aspek.nama_aspek }}
+                    {% if aspek.is_required %}<span class="text-danger">*</span>{% endif %}
+                </div>
+                <div class="question-text">{{ aspek.deskripsi }}</div>
+                
+                <div class="slider-container">
+                    <input type="range" 
+                           min="{{ aspek.skala_min }}" 
+                           max="{{ aspek.skala_max }}" 
+                           value="{{ aspek.skala_min|add:aspek.skala_max|floatformat:0|add:0|div:2 }}" 
+                           class="slider" 
+                           id="aspek_{{ aspek.id }}-slider" 
+                           oninput="updateSliderValue('aspek_{{ aspek.id }}', this.value, '{{ aspek.label_min }}', '{{ aspek.label_max }}', {{ aspek.skala_min }}, {{ aspek.skala_max }})">
+                    
+                    <div class="slider-labels">
+                        <span>{{ aspek.skala_min }} - {{ aspek.label_min }}</span>
+                        {% if aspek.skala_max > 3 %}
+                            <span>{{ aspek.skala_min|add:aspek.skala_max|floatformat:0|add:0|div:2 }} - Cukup</span>
+                        {% endif %}
+                        <span>{{ aspek.skala_max }} - {{ aspek.label_max }}</span>
+                    </div>
+                    <div class="slider-value" id="aspek_{{ aspek.id }}-value">
+                        Nilai: {{ aspek.skala_min|add:aspek.skala_max|floatformat:0|add:0|div:2 }}
+                    </div>
+                </div>
+                
+                <!-- Hidden field untuk menyimpan nilai -->
+                <input type="hidden" name="aspek_{{ aspek.id }}" id="aspek_{{ aspek.id }}" 
+                       value="{{ aspek.skala_min|add:aspek.skala_max|floatformat:0|add:0|div:2 }}">
+            </div>
+        {% endfor %}
+        
+        <!-- Komentar dan Saran -->
+        <div class="question-section">
+            <div class="question-title">Komentar dan Saran (Opsional)</div>
+            <div class="mb-3">
+                <label for="{{ form.komentar.id_for_label }}" class="form-label">Komentar</label>
+                {{ form.komentar }}
+            </div>
+            <div class="mb-3">
+                <label for="{{ form.saran.id_for_label }}" class="form-label">Saran</label>
+                {{ form.saran }}
+            </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-save"></i> Simpan Penilaian
+            </button>
+            <a href="{% url 'survey:survey_response_list' %}" class="btn btn-secondary btn-lg px-5 ms-3">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateSliderValue(fieldName, value, labelMin, labelMax, scaleMin, scaleMax) {
+    // Update display value
+    document.getElementById(fieldName + '-value').textContent = 'Nilai: ' + value;
+    
+    // Update hidden form field
+    const hiddenField = document.getElementById(fieldName);
+    if (hiddenField) {
+        hiddenField.value = value;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all sliders
+    {% for aspek in aspek_list %}
+        const slider{{ aspek.id }} = document.getElementById('aspek_{{ aspek.id }}-slider');
+        const hiddenField{{ aspek.id }} = document.getElementById('aspek_{{ aspek.id }}');
+        
+        if (slider{{ aspek.id }} && hiddenField{{ aspek.id }}) {
+            // Set initial value
+            hiddenField{{ aspek.id }}.value = slider{{ aspek.id }}.value;
+            updateSliderValue('aspek_{{ aspek.id }}', slider{{ aspek.id }}.value, '{{ aspek.label_min }}', '{{ aspek.label_max }}', {{ aspek.skala_min }}, {{ aspek.skala_max }});
+        }
+    {% endfor %}
+});
+</script>
+{% endblock %}

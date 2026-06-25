@@ -1,0 +1,39 @@
+{% load render_table from django_tables2 %}
+
+<div id="table-content" class="relative">
+    {% include 'includes/datatable_loading.html' %}
+
+    <div class="mb-5 flex justify-between items-center flex-wrap gap-2">
+        <div class="text-sm">
+            <span class="font-semibold text-gray-700">Total Konfigurasi:</span> <span class="text-gray-600">{{ total }}</span>
+            <span id="dt-total-records" data-total="{{ total }}" class="hidden"></span>
+            {% if search_query %}
+            <span class="ml-2 inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                <i class="fas fa-filter mr-1"></i> Hasil pencarian: "{{ search_query }}"
+            </span>
+            {% endif %}
+        </div>
+        <div class="text-xs text-gray-500">
+            <i class="fas fa-info-circle mr-1"></i> Click column headers to sort
+        </div>
+    </div>
+
+    {% if total == 0 and search_query %}
+    <div class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <i class="fas fa-search text-5xl text-gray-300 mb-4"></i>
+        <p class="text-gray-600 font-medium mb-2">Tidak ada hasil untuk "{{ search_query }}"</p>
+        <p class="text-gray-500 text-sm">Coba kata kunci lain atau hapus filter pencarian</p>
+    </div>
+    {% elif total == 0 %}
+    <div class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <i class="fas fa-cog text-5xl text-gray-300 mb-4"></i>
+        <p class="text-gray-600 font-medium mb-2">Belum Ada Konfigurasi Survey</p>
+        <p class="text-gray-500 text-sm mb-4">Buat konfigurasi survey pertama untuk memulai</p>
+        <a href="{% url 'survey:survey_config_create' %}" class="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i> Buat Konfigurasi Baru
+        </a>
+    </div>
+    {% else %}
+    {% include 'includes/datatable_table_scroll.html' with table=table %}
+    {% endif %}
+</div>

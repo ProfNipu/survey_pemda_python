@@ -1,0 +1,63 @@
+<!-- Alert/Notice Box Component (Reusable) -->
+<!-- Usage: include 'includes/alert_box.html' with type='info' icon='info-circle' title='Notice' content='Message here...' -->
+
+{% if type == 'info' %}
+    {% with bg_color='bg-blue-50' border_color='border-blue-500' icon_color='text-blue-500' text_color='text-gray-700' %}
+        <div class="{{ bg_color }} border-l-4 {{ border_color }} p-4 mb-6">
+            <div class="flex items-start">
+                <i class="fas fa-{{ icon|default:'info-circle' }} {{ icon_color }} mr-3 mt-1"></i>
+                <div class="text-sm {{ text_color }}">
+                    {% if title %}<strong>{{ title }}</strong><br>{% endif %}
+                    {{ content|safe }}
+                </div>
+            </div>
+        </div>
+    {% endwith %}
+{% elif type == 'warning' %}
+    {% with bg_color='bg-yellow-50' border_color='border-yellow-500' icon_color='text-yellow-600' text_color='text-gray-700' %}
+        <div class="{{ bg_color }} border-l-4 {{ border_color }} p-4 mb-6">
+            <div class="flex items-start">
+                <i class="fas fa-{{ icon|default:'exclamation-triangle' }} {{ icon_color }} mr-3 mt-1"></i>
+                <div class="text-sm {{ text_color }}">
+                    {% if title %}<strong>{{ title }}</strong><br>{% endif %}
+                    {{ content|safe }}
+                </div>
+            </div>
+        </div>
+    {% endwith %}
+{% elif type == 'error' %}
+    {% with bg_color='bg-red-50' border_color='border-red-500' icon_color='text-red-500' text_color='text-gray-700' %}
+        <div class="{{ bg_color }} border-l-4 {{ border_color }} p-4 mb-6">
+            <div class="flex items-start">
+                <i class="fas fa-{{ icon|default:'times-circle' }} {{ icon_color }} mr-3 mt-1"></i>
+                <div class="text-sm {{ text_color }}">
+                    {% if title %}<strong>{{ title }}</strong><br>{% endif %}
+                    {{ content|safe }}
+                </div>
+            </div>
+        </div>
+    {% endwith %}
+{% elif type == 'success' %}
+    {% with bg_color='bg-green-50' border_color='border-green-500' icon_color='text-green-500' text_color='text-gray-700' %}
+        <div class="{{ bg_color }} border-l-4 {{ border_color }} p-4 mb-6">
+            <div class="flex items-start">
+                <i class="fas fa-{{ icon|default:'check-circle' }} {{ icon_color }} mr-3 mt-1"></i>
+                <div class="text-sm {{ text_color }}">
+                    {% if title %}<strong>{{ title }}</strong><br>{% endif %}
+                    {{ content|safe }}
+                </div>
+            </div>
+        </div>
+    {% endwith %}
+{% else %}
+    <!-- Default: info style -->
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+        <div class="flex items-start">
+            <i class="fas fa-{{ icon|default:'info-circle' }} text-blue-500 mr-3 mt-1"></i>
+            <div class="text-sm text-gray-700">
+                {% if title %}<strong>{{ title }}</strong><br>{% endif %}
+                {{ content|safe }}
+            </div>
+        </div>
+    </div>
+{% endif %}

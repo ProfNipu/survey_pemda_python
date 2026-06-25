@@ -1,0 +1,68 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}Hapus Rule{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Konfirmasi Hapus Rule
+    </h2>
+</div>
+
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-2xl mx-auto">
+    <div class="text-center mb-6">
+        <i class="fas fa-gavel text-7xl text-red-500 mb-4 block"></i>
+        <h4 class="text-xl font-semibold text-gray-800">Apakah Anda yakin ingin menghapus rule ini?</h4>
+    </div>
+    
+    <div class="bg-amber-50 border-l-4 border-amber-500 p-5 rounded-lg my-5">
+        <strong class="text-amber-800">
+            <i class="fas fa-info-circle mr-2"></i> Informasi Rule:
+        </strong>
+        <ul class="mt-3 space-y-2 text-amber-700">
+            <li><span class="font-semibold">Module:</span> {{ rule.module.label_module }}</li>
+            <li><span class="font-semibold">Control:</span> {{ rule.control.label_kontrol }}</li>
+            <li><span class="font-semibold">Function:</span> {{ rule.function.label_fungsi }}</li>
+            <li><span class="font-semibold">Permission String:</span> <code class="bg-amber-100 px-2 py-0.5 rounded">{{ rule.permission_string }}</code></li>
+        </ul>
+    </div>
+    
+    {% if assignment_count > 0 %}
+    <div class="bg-red-50 border-l-4 border-red-500 p-5 rounded-lg my-5">
+        <strong class="text-red-800">
+            <i class="fas fa-exclamation-triangle mr-2"></i> Peringatan!
+        </strong>
+        <p class="mb-2 mt-2 text-red-700">Rule ini digunakan oleh <strong>{{ assignment_count }} roles</strong>. Menghapus rule akan menghapus permission dari semua role terkait!</p>
+        
+        <details class="mt-3">
+            <summary class="cursor-pointer text-red-600 font-medium hover:text-red-700">
+                <i class="fas fa-list mr-1"></i> Lihat Roles yang Terpengaruh ({{ affected_assignments.count }})
+            </summary>
+            <ul class="mt-3 space-y-1 text-red-700 ml-4">
+                {% for assignment in affected_assignments %}
+                <li><span class="font-semibold">{{ assignment.role.name }}</span></li>
+                {% endfor %}
+            </ul>
+        </details>
+    </div>
+    {% else %}
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4 my-5">
+        <i class="fas fa-check-circle text-green-600 mr-2"></i>
+        <span class="text-green-700">Rule ini tidak digunakan oleh role apapun. Aman untuk dihapus.</span>
+    </div>
+    {% endif %}
+    
+    <form method="post" class="mt-6" novalidate>
+        {% csrf_token %}
+        <div class="flex gap-3">
+            <button type="submit" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                <i class="fas fa-trash mr-2"></i> Ya, Hapus Rule
+            </button>
+            <a href="{% url 'manajemen_aplikasi:rule_list' %}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-colors text-center">
+                <i class="fas fa-times mr-2"></i> Batal
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

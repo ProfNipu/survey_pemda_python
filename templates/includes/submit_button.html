@@ -1,0 +1,13 @@
+<!-- Submit Button Component (Reusable) -->
+<!-- Usage: include 'includes/submit_button.html' with button_id='submitBtn' button_text='Submit' icon='check' -->
+
+<button 
+    type="submit" 
+    id="{{ button_id|default:'submitBtn' }}"
+    class="w-full text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg"
+    style="background-color: #0066cc;"
+    onmouseover="this.style.backgroundColor='#0052a3'"
+    onmouseout="this.style.backgroundColor='#0066cc'"
+>
+    {% if icon %}<i class="fas fa-{{ icon }} mr-2"></i>{% endif %}{{ button_text|default:'Submit' }}
+</button>

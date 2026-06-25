@@ -1,0 +1,63 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Detail API{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-book mr-2"></i> Detail API
+        </h2>
+        <p class="text-gray-500">Informasi endpoint API</p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'manajemen_aplikasi:api_documentation_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali
+        </a>
+    </div>
+</div>
+
+{% if not doc %}
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    <div class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <i class="fas fa-exclamation-triangle text-5xl text-gray-300 mb-4"></i>
+        <p class="text-gray-600 font-medium mb-2">Data tidak ditemukan</p>
+        <p class="text-gray-500 text-sm">ID dokumentasi API tidak valid atau sudah terhapus</p>
+    </div>
+</div>
+{% else %}
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2">
+            <div class="mb-6">
+                <div class="text-xs text-gray-500 uppercase tracking-wider font-semibold">URL</div>
+                <div class="mt-2 text-base font-semibold text-gray-900 break-words">{{ doc.url }}</div>
+            </div>
+
+            <div class="mb-6">
+                <div class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Method</div>
+                <div class="mt-2">
+                    <span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded font-semibold">{{ doc.method_type_display|default:'-' }}</span>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <div class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Deskripsi</div>
+                <div class="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{{ doc.description|default:'-' }}</div>
+            </div>
+        </div>
+
+        <div>
+            <div class="mb-2 text-xs text-gray-500 uppercase tracking-wider font-semibold">Parameters</div>
+            <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-xs text-gray-800 overflow-auto max-h-[420px]">{% if doc.parameters_display %}{{ doc.parameters_display }}{% elif doc.parameters %}{{ doc.parameters }}{% else %}-{% endif %}</pre>
+
+            <div class="mt-6 text-xs text-gray-500">
+                <div><span class="font-semibold">Created:</span> {{ doc.created_at|default:'-' }}</div>
+                <div class="mt-1"><span class="font-semibold">Updated:</span> {{ doc.updated_at|default:'-' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

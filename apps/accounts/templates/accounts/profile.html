@@ -1,0 +1,186 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}Profile Saya{% endblock %}
+
+{% block content %}
+<div id="profile-container">
+<div class="mb-6">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+        <i class="fas fa-user-circle mr-2"></i> Profile Saya
+    </h2>
+    <p class="text-gray-500">Informasi akun dan permissions Anda</p>
+</div>
+
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-4xl mx-auto">
+    <div class="text-center p-8 bg-gradient-to-br from-primary to-secondary rounded-xl text-white mb-8">
+        <div class="w-24 h-24 rounded-full bg-white text-primary flex items-center justify-center text-5xl font-bold mx-auto mb-4">
+            {{ user.username|first|upper }}
+        </div>
+        <h3 class="text-2xl font-semibold mb-2">{{ user.get_full_name|default:user.username }}</h3>
+        <p class="text-white/80 mb-3">@{{ user.username }}</p>
+        <div class="flex gap-2 justify-center">
+            {% if user.is_superuser %}
+            <span class="inline-block bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">Superuser</span>
+            {% endif %}
+            {% if user.is_staff %}
+            <span class="inline-block bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm font-medium">Staff</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Edit Profile Form -->
+    <form method="post" class="mb-8" novalidate
+          hx-post="{{ request.path }}" hx-trigger="submit"
+          hx-target="#profile-container" hx-select="#profile-container" hx-swap="outerHTML">
+        {% csrf_token %}
+        
+        <div class="mb-8">
+            <h4 class="text-lg font-semibold text-primary mb-5 pb-3 border-b-2 border-primary">
+                <i class="fas fa-user-edit mr-2"></i> Edit Profile
+            </h4>
+            
+            <div class="mb-5">
+                <label class="block font-medium text-gray-700 mb-2">Nama</label>
+                <input 
+                    type="text" 
+                    class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                    name="name" 
+                    value="{{ name_value }}"
+                    placeholder="Nama Lengkap"
+                >
+            </div>
+            
+            <div class="mb-5">
+                <label class="block font-medium text-gray-700 mb-2">Email</label>
+                <input 
+                    type="email" 
+                    class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                    name="email" 
+                    value="{{ email_value }}"
+                    placeholder="email@example.com"
+                >
+            </div>
+            
+            <div class="flex gap-2">
+                <button type="submit" class="bg-primary hover:bg-primary-600 text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                    <i class="fas fa-save mr-2"></i> Update Profile
+                </button>
+                <a href="{% url 'accounts:change_password' %}" class="bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                    <i class="fas fa-key mr-2"></i> Ganti Password
+                </a>
+            </div>
+        </div>
+    </form>
+    
+    <!-- User Info -->
+    <div class="mb-8">
+        <h4 class="text-lg font-semibold text-primary mb-5 pb-3 border-b-2 border-primary">
+            <i class="fas fa-info-circle mr-2"></i> Informasi Akun
+        </h4>
+        
+        <div class="space-y-3">
+            <div class="py-3 border-b last:border-0">
+                <span class="font-semibold text-gray-700">Username:</span> 
+                <span class="text-gray-600">{{ user.username }}</span>
+            </div>
+            <div class="py-3 border-b last:border-0">
+                <span class="font-semibold text-gray-700">Email:</span> 
+                <span class="text-gray-600">{{ email_value|default:"-" }}</span>
+            </div>
+            <div class="py-3 border-b last:border-0">
+                <span class="font-semibold text-gray-700">Nama:</span> 
+                <span class="text-gray-600">{{ name_value|default:"-" }}</span>
+            </div>
+            <div class="py-3 border-b last:border-0">
+                <span class="font-semibold text-gray-700">Status:</span> 
+                {% if user.is_active %}
+                <span class="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">Active</span>
+                {% else %}
+                <span class="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium">Inactive</span>
+                {% endif %}
+            </div>
+            <div class="py-3 border-b last:border-0">
+                <span class="font-semibold text-gray-700">Date Joined:</span> 
+                <span class="text-gray-600">{{ user.date_joined|date:"d M Y H:i" }}</span>
+            </div>
+            <div class="py-3 border-b last:border-0">
+                <span class="font-semibold text-gray-700">Last Login:</span> 
+                <span class="text-gray-600">{{ user.last_login|date:"d M Y H:i"|default:"Belum pernah" }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Roles -->
+    <div class="mb-8">
+        <h4 class="text-lg font-semibold text-primary mb-5 pb-3 border-b-2 border-primary">
+            <i class="fas fa-user-tag mr-2"></i> Roles Saya
+        </h4>
+        
+        {% if user_roles %}
+        <div class="flex flex-wrap gap-2">
+            {% for role in user_roles %}
+            <span class="inline-block px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-br from-primary to-secondary text-white">
+                {{ role.name }}
+            </span>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-500">Anda belum memiliki role.</p>
+        {% endif %}
+    </div>
+    
+    <!-- User Permissions -->
+    <div class="mb-8">
+        <h4 class="text-lg font-semibold text-primary mb-5 pb-3 border-b-2 border-primary">
+            <i class="fas fa-shield-alt mr-2"></i> Permissions Saya
+        </h4>
+        
+        <p class="mb-4">
+            <span class="font-semibold text-gray-700">Total Permissions:</span> 
+            <span class="text-gray-600">{{ total_permissions }}</span>
+        </p>
+        
+        {% if user_rules %}
+        <div class="max-h-96 overflow-y-auto bg-gray-50 p-4 rounded-lg space-y-3">
+            {% for role_rule in user_rules %}
+            <div class="bg-white p-3 rounded border border-gray-200">
+                <div class="flex items-start gap-2">
+                    <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                    <div>
+                        <div class="text-gray-800">
+                            <span class="font-semibold">{{ role_rule.rule.module.label_module }}</span> →
+                            {{ role_rule.rule.control.label_kontrol }} →
+                            {{ role_rule.rule.function.label_fungsi }}
+                        </div>
+                        <code class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded mt-1 inline-block">
+                            {{ role_rule.rule.permission_string }}
+                        </code>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-500">Anda belum memiliki permissions khusus.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function(){
+  try {
+    bindFormSwal('#profile-container', {
+      successEvent: 'profile-form-success',
+      invalidEvent: 'profile-form-invalid',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      confirmButtonText: 'OK',
+      scrollToTop: true,
+      dedupeInvalid: false
+    });
+  } catch(_) {}
+})();
+</script>
+</div>
+
+{% endblock %}

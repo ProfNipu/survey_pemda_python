@@ -1,0 +1,77 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block page_title %}Konfigurasi Survey{% endblock %}
+
+{% block content %}
+{% has_permission 'survey' 'survey_config' 'view' as can_back_dashboard %}
+{% has_permission 'survey' 'survey_config' 'create' as can_create %}
+{% has_permission 'survey' 'survey_config' 'export' as can_export %}
+{% has_permission 'survey' 'survey_config' 'delete' as can_delete %}
+{% has_permission 'survey' 'survey_config' 'bulk_delete' as can_bulk_delete %}
+
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-cog mr-2"></i> Konfigurasi Survey
+        </h2>
+        <p class="text-gray-500">Kelola konfigurasi form survey untuk pegawai</p>
+    </div>
+    <div class="flex gap-2">
+        {% if can_create %}
+        <a href="{% url 'survey:survey_config_create' %}" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i> Buat Konfigurasi Baru
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    {% include 'includes/datatable_filters.html' with show_search=True search_placeholder="Cari nama survey, tahun, atau deskripsi..." show_status_filter=True %}
+
+    {% include 'includes/datatable_bulk_actions.html' with show_clear=True show_copy=True show_export=can_export show_print=True show_delete=can_bulk_delete export_formats="csv,excel,pdf" %}
+
+    <div id="table-container">
+        {% include 'survey_config/partials/_table.html' %}
+    </div>
+</div>
+
+<div class="mt-5">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-info-circle mr-2"></i> Info:
+        </strong>
+        <span class="text-blue-700">
+            Konfigurasi Survey memungkinkan Super Admin membuat form survey dinamis dengan aspek penilaian yang dapat dikustomisasi.
+        </span>
+    </div>
+</div>
+
+<script src="{% static 'js/datatable-helpers.js' %}?v=1.2"></script>
+<script>
+(function(){
+  function initSurveyConfigDT(){
+    if (window.surveyConfigIntegratedDT) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+    window.surveyConfigIntegratedDT = new DatatableHelper({
+        tableId: 'survey_config_table',
+        pageKey: 'survey_config_list',
+        saveUrl: '{% url "survey:survey_config_list" %}',
+        deleteUrl: '{% url "survey:survey_config_list" %}',
+        csrfToken: csrfToken,
+        exportFormats: ['csv','excel','pdf'],
+        entity: 'survey_config',
+        useToast: true,
+        debug: true
+    });
+    window.surveyConfigIntegratedDT.init();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSurveyConfigDT);
+  } else {
+    initSurveyConfigDT();
+  }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,406 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    {% if edit_mode %}Edit Penilaian JPT{% else %}Tambah Penilaian JPT{% endif %} - {{ app_name }}
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/datatable-reusable.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    {% include 'includes/crud_form_header.html' with title='Penilaian JPT' subtitle='Form penilaian untuk Jabatan Pimpinan Tinggi' icon='fas fa-star' %}
+    
+    <div class="bg-white rounded-xl p-6 shadow-lg">
+        <form method="post" hx-post="{% if edit_mode %}{% url 'survey:penilaian_edit' obj.id %}{% else %}{% if request.resolver_match.url_name == 'buat_penilaian' %}{% url 'survey:buat_penilaian' %}{% else %}{% url 'survey:penilaian_create' %}{% endif %}{% endif %}" hx-target="body" hx-swap="none" class="space-y-8">
+            {% csrf_token %}
+            
+            <!-- Data Pegawai yang Dinilai -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-user-tie text-blue-500 mr-2"></i>
+                    Data Pegawai yang Dinilai
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label for="{{ form.nip_dinilai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.nip_dinilai.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.nip_dinilai }}
+                        {% if form.nip_dinilai.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.nip_dinilai.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.nama_dinilai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.nama_dinilai.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.nama_dinilai }}
+                        {% if form.nama_dinilai.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.nama_dinilai.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.jabatan_dinilai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.jabatan_dinilai.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.jabatan_dinilai }}
+                        {% if form.jabatan_dinilai.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.jabatan_dinilai.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.unit_kerja_dinilai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.unit_kerja_dinilai.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.unit_kerja_dinilai }}
+                        {% if form.unit_kerja_dinilai.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.unit_kerja_dinilai.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Penilai -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-user-check text-green-500 mr-2"></i>
+                    Data Penilai
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label for="{{ form.nip_penilai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.nip_penilai.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.nip_penilai }}
+                        {% if form.nip_penilai.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.nip_penilai.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.nama_penilai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.nama_penilai.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.nama_penilai }}
+                        {% if form.nama_penilai.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.nama_penilai.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.jabatan_penilai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.jabatan_penilai.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.jabatan_penilai }}
+                        {% if form.jabatan_penilai.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.jabatan_penilai.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.unit_kerja_penilai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.unit_kerja_penilai.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.unit_kerja_penilai }}
+                        {% if form.unit_kerja_penilai.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.unit_kerja_penilai.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Periode Penilaian -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-calendar-alt text-purple-500 mr-2"></i>
+                    Periode Penilaian
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label for="{{ form.periode_mulai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.periode_mulai.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.periode_mulai }}
+                        {% if form.periode_mulai.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.periode_mulai.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.periode_selesai.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.periode_selesai.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.periode_selesai }}
+                        {% if form.periode_selesai.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.periode_selesai.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aspek Penilaian -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-star text-yellow-500 mr-2"></i>
+                    Aspek Penilaian (Skala 1-5)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label for="{{ form.kepemimpinan.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.kepemimpinan.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.kepemimpinan }}
+                        {% if form.kepemimpinan.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.kepemimpinan.help_text }}</p>
+                        {% endif %}
+                        {% if form.kepemimpinan.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.kepemimpinan.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.kerjasama.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.kerjasama.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.kerjasama }}
+                        {% if form.kerjasama.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.kerjasama.help_text }}</p>
+                        {% endif %}
+                        {% if form.kerjasama.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.kerjasama.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.komunikasi.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.komunikasi.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.komunikasi }}
+                        {% if form.komunikasi.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.komunikasi.help_text }}</p>
+                        {% endif %}
+                        {% if form.komunikasi.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.komunikasi.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.inovasi.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.inovasi.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.inovasi }}
+                        {% if form.inovasi.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.inovasi.help_text }}</p>
+                        {% endif %}
+                        {% if form.inovasi.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.inovasi.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.integritas.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.integritas.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.integritas }}
+                        {% if form.integritas.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.integritas.help_text }}</p>
+                        {% endif %}
+                        {% if form.integritas.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.integritas.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.orientasi_hasil.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.orientasi_hasil.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.orientasi_hasil }}
+                        {% if form.orientasi_hasil.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.orientasi_hasil.help_text }}</p>
+                        {% endif %}
+                        {% if form.orientasi_hasil.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.orientasi_hasil.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Komentar dan Saran -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-comment-alt text-indigo-500 mr-2"></i>
+                    Komentar dan Saran
+                </h3>
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="space-y-2">
+                        <label for="{{ form.komentar.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.komentar.label }}
+                        </label>
+                        {{ form.komentar }}
+                        {% if form.komentar.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.komentar.help_text }}</p>
+                        {% endif %}
+                        {% if form.komentar.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.komentar.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="{{ form.saran.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.saran.label }}
+                        </label>
+                        {{ form.saran }}
+                        {% if form.saran.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.saran.help_text }}</p>
+                        {% endif %}
+                        {% if form.saran.errors %}
+                            <div class="text-red-600 text-sm">
+                                {% for error in form.saran.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Errors -->
+            {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="text-red-800">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% include 'includes/crud_form_actions.html' with back_url='survey:penilaian_list' %}
+        </form>
+    </div>
+
+    <!-- Info Box -->
+    <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex items-start">
+            <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-3"></i>
+            <div class="text-yellow-800">
+                <h4 class="font-medium mb-2">Panduan Penilaian</h4>
+                <div class="text-sm space-y-1">
+                    <p><strong>Skala Penilaian:</strong></p>
+                    <ul class="list-disc list-inside ml-4 space-y-1">
+                        <li><strong>1 - Sangat Kurang:</strong> Tidak memenuhi standar minimal</li>
+                        <li><strong>2 - Kurang:</strong> Memenuhi sebagian kecil standar</li>
+                        <li><strong>3 - Cukup:</strong> Memenuhi standar minimal</li>
+                        <li><strong>4 - Baik:</strong> Melebihi standar yang diharapkan</li>
+                        <li><strong>5 - Sangat Baik:</strong> Jauh melebihi standar yang diharapkan</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Bind form submission with SweetAlert
+    bindFormSwal({
+        formSelector: 'form[hx-post]',
+        successEvent: 'penilaian-jpt-form-success',
+        invalidEvent: 'penilaian-jpt-form-invalid',
+        entityName: 'Penilaian JPT'
+    });
+});
+</script>
+{% endblock %}

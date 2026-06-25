@@ -1,0 +1,251 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block page_title %}{% if edit_mode %}Edit{% else %}Buat{% endif %} Konfigurasi Survey{% endblock %}
+
+{% block content %}
+{% url 'survey:survey_config_list' as back_url %}
+{% include 'includes/crud_form_header.html' with icon_class='fas fa-cog' title=edit_mode|yesno:'Edit Konfigurasi Survey,Buat Konfigurasi Survey' subtitle=edit_mode|yesno:'Update konfigurasi survey,Buat konfigurasi survey baru' back_url=back_url %}
+
+<div id="survey-config-form-container">
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-6xl mx-auto">
+    <form method="post" id="surveyConfigForm" novalidate hx-post="{{ request.path }}" hx-trigger="submit" hx-target="#survey-config-form-container" hx-select="#survey-config-form-container" hx-swap="outerHTML">
+        {% csrf_token %}
+        
+        <!-- Informasi Dasar Survey -->
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+                <i class="fas fa-info-circle mr-2"></i> Informasi Dasar Survey
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label for="id_nama_survey" class="block font-medium text-gray-700 mb-2">
+                        Nama Survey <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.nama_survey }}
+                    {% if form.nama_survey.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.nama_survey.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="id_deskripsi" class="block font-medium text-gray-700 mb-2">
+                        Deskripsi
+                    </label>
+                    {{ form.deskripsi }}
+                    {% if form.deskripsi.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.deskripsi.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="id_tahun" class="block font-medium text-gray-700 mb-2">
+                        Tahun <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.tahun }}
+                    {% if form.tahun.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.tahun.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <!-- Empty for spacing -->
+                </div>
+                
+                <div>
+                    <label for="id_periode_mulai" class="block font-medium text-gray-700 mb-2">
+                        Periode Mulai <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.periode_mulai }}
+                    {% if form.periode_mulai.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.periode_mulai.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="id_periode_selesai" class="block font-medium text-gray-700 mb-2">
+                        Periode Selesai <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.periode_selesai }}
+                    {% if form.periode_selesai.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.periode_selesai.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Opsi Tampilan -->
+            <div class="mt-6">
+                <h4 class="text-md font-medium text-gray-700 mb-3">Opsi Tampilan</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex items-center">
+                        {{ form.show_pegawai_penilai }}
+                        <label class="ml-2 text-gray-700" for="id_show_pegawai_penilai">
+                            {{ form.show_pegawai_penilai.label }}
+                        </label>
+                    </div>
+                    <div class="flex items-center">
+                        {{ form.show_foto_pegawai }}
+                        <label class="ml-2 text-gray-700" for="id_show_foto_pegawai">
+                            {{ form.show_foto_pegawai.label }}
+                        </label>
+                    </div>
+                    <div class="flex items-center">
+                        {{ form.is_active }}
+                        <label class="ml-2 text-gray-700" for="id_is_active">
+                            {{ form.is_active.label }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aspek Penilaian -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                    <i class="fas fa-list mr-2"></i> Aspek Penilaian
+                </h3>
+                <button type="button" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors" id="add-aspek">
+                    <i class="fas fa-plus mr-2"></i> Tambah Aspek
+                </button>
+            </div>
+            
+            {{ formset.management_form }}
+            <div id="aspek-formset" class="space-y-4">
+                {% for form in formset %}
+                    <div class="formset-row bg-gray-50 border border-gray-200 rounded-lg p-4" data-form-index="{{ forloop.counter0 }}">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-md font-medium text-gray-700">Aspek {{ forloop.counter }}</h4>
+                            <button type="button" class="text-red-600 hover:text-red-800 transition-colors delete-row" onclick="deleteAspek(this)">
+                                <i class="fas fa-trash mr-1"></i> Hapus
+                            </button>
+                        </div>
+                        
+                        {% for hidden in form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block font-medium text-gray-700 mb-2">Nama Aspek <span class="text-red-500">*</span></label>
+                                {{ form.nama_aspek }}
+                            </div>
+                            <div>
+                                <label class="block font-medium text-gray-700 mb-2">Urutan</label>
+                                {{ form.urutan }}
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block font-medium text-gray-700 mb-2">Deskripsi/Pertanyaan <span class="text-red-500">*</span></label>
+                                {{ form.deskripsi }}
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block font-medium text-gray-700 mb-2">Skala Min</label>
+                                    {{ form.skala_min }}
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-gray-700 mb-2">Skala Max</label>
+                                    {{ form.skala_max }}
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block font-medium text-gray-700 mb-2">Label Min</label>
+                                    {{ form.label_min }}
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-gray-700 mb-2">Label Max</label>
+                                    {{ form.label_max }}
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                {{ form.is_required }}
+                                <label class="ml-2 text-gray-700" for="{{ form.is_required.id_for_label }}">
+                                    Wajib Diisi
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% url 'survey:survey_config_list' as cancel_url %}
+        {% include 'includes/crud_form_actions.html' with submit_label=edit_mode|yesno:'Update,Simpan' cancel_url=cancel_url cancel_label='Batal' %}
+    </form>
+</div>
+
+<script>
+let formIndex = {{ formset.total_form_count }};
+
+document.getElementById('add-aspek').addEventListener('click', function() {
+    const formsetDiv = document.getElementById('aspek-formset');
+    const emptyForm = document.querySelector('.formset-row').cloneNode(true);
+    
+    // Update form index
+    emptyForm.setAttribute('data-form-index', formIndex);
+    emptyForm.innerHTML = emptyForm.innerHTML.replace(/__prefix__/g, formIndex);
+    
+    // Clear values
+    emptyForm.querySelectorAll('input, textarea, select').forEach(function(input) {
+        if (input.type !== 'hidden') {
+            input.value = '';
+        }
+    });
+    
+    // Update title
+    emptyForm.querySelector('h4').textContent = 'Aspek ' + (formIndex + 1);
+    
+    formsetDiv.appendChild(emptyForm);
+    
+    // Update management form
+    document.getElementById('id_aspek_penilaian-TOTAL_FORMS').value = formIndex + 1;
+    formIndex++;
+});
+
+function deleteAspek(element) {
+    const formRow = element.closest('.formset-row');
+    const deleteInput = formRow.querySelector('input[name$="-DELETE"]');
+    
+    if (deleteInput) {
+        deleteInput.checked = true;
+        formRow.classList.add('opacity-50', 'bg-red-50');
+        formRow.style.display = 'none';
+    } else {
+        formRow.remove();
+        // Update total forms count
+        const totalForms = document.getElementById('id_aspek_penilaian-TOTAL_FORMS');
+        totalForms.value = parseInt(totalForms.value) - 1;
+    }
+}
+
+(function(){
+  bindFormSwal('#survey-config-form-container', {
+    successEvent: 'survey-config-form-success',
+    invalidEvent: 'survey-config-form-invalid',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    confirmButtonText: 'OK',
+    scrollToTop: true,
+    dedupeInvalid: false
+  });
+})();
+</script>
+</div>
+
+<div class="mt-5 max-w-6xl mx-auto">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-info-circle mr-2"></i> Petunjuk:
+        </strong>
+        <ul class="mt-2 mb-0 space-y-1 text-blue-700 text-sm list-disc list-inside">
+            <li>Nama Survey harus jelas dan deskriptif (contoh: "Survey 360° - Penilaian Kinerja Pegawai")</li>
+            <li>Minimal harus ada 1 aspek penilaian</li>
+            <li>Skala penilaian bisa disesuaikan (1-5, 1-10, dll)</li>
+            <li>Label min/max akan ditampilkan di form survey (contoh: "Sangat Kurang" - "Sangat Baik")</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

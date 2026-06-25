@@ -1,0 +1,336 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+        <i class="fas fa-shield-alt mr-2"></i> Manajemen Akses Granular
+    </h2>
+    <p class="text-gray-500">Kelola Functions, Controls, Modules, Rules, dan Role Assignments</p>
+</div>
+
+<!-- Statistics -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-8">
+    <div class="bg-gradient-to-br from-primary to-secondary text-white p-6 rounded-xl shadow-lg">
+        <h3 class="text-sm font-medium mb-2 opacity-90">FUNCTIONS</h3>
+        <div class="text-4xl font-bold mb-1">{{ stats.functions }}</div>
+        <div class="text-xs opacity-80">Total Actions</div>
+    </div>
+    <div class="bg-gradient-to-br from-primary to-secondary text-white p-6 rounded-xl shadow-lg">
+        <h3 class="text-sm font-medium mb-2 opacity-90">CONTROLS</h3>
+        <div class="text-4xl font-bold mb-1">{{ stats.controls }}</div>
+        <div class="text-xs opacity-80">Total Resources</div>
+    </div>
+    <div class="bg-gradient-to-br from-primary to-secondary text-white p-6 rounded-xl shadow-lg">
+        <h3 class="text-sm font-medium mb-2 opacity-90">MODULES</h3>
+        <div class="text-4xl font-bold mb-1">{{ stats.modules }}</div>
+        <div class="text-xs opacity-80">Active Modules</div>
+    </div>
+    <div class="bg-gradient-to-br from-primary to-secondary text-white p-6 rounded-xl shadow-lg">
+        <h3 class="text-sm font-medium mb-2 opacity-90">RULES</h3>
+        <div class="text-4xl font-bold mb-1">{{ stats.rules }}</div>
+        <div class="text-xs opacity-80">Permission Rules</div>
+    </div>
+    <div class="bg-gradient-to-br from-primary to-secondary text-white p-6 rounded-xl shadow-lg">
+        <h3 class="text-sm font-medium mb-2 opacity-90">ROLES</h3>
+        <div class="text-4xl font-bold mb-1">{{ stats.roles }}</div>
+        <div class="text-xs opacity-80">User Roles</div>
+    </div>
+    <div class="bg-gradient-to-br from-primary to-secondary text-white p-6 rounded-xl shadow-lg">
+        <h3 class="text-sm font-medium mb-2 opacity-90">USERS</h3>
+        <div class="text-4xl font-bold mb-1">{{ stats.users }}</div>
+        <div class="text-xs opacity-80">Active Users</div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-800">
+            <i class="fas fa-chart-bar mr-2"></i> Ringkasan Data Akses
+        </h3>
+        <div class="text-xs text-gray-500">amCharts (local static)</div>
+    </div>
+    <div id="amchart-permission-summary" style="width: 100%; height: 320px;"></div>
+</div>
+
+<!-- Management Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-8">
+    <!-- Users -->
+    <div class="bg-white rounded-xl p-6 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+        <div class="text-5xl mb-4 bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
+            <i class="fas fa-users"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Manajemen User</h3>
+        <p class="text-gray-600 text-sm mb-4">Kelola users, create, edit, assign roles</p>
+        <a href="{% url 'manajemen_aplikasi:users_list' %}" class="block w-full bg-primary hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center mb-2">
+            <i class="fas fa-list mr-2"></i> Lihat Users
+        </a>
+        <a href="{% url 'manajemen_aplikasi:users_create' %}" class="block w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center">
+            <i class="fas fa-plus mr-2"></i> Tambah User
+        </a>
+    </div>
+    
+    <!-- Roles -->
+    <div class="bg-white rounded-xl p-6 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+        <div class="text-5xl mb-4 bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
+            <i class="fas fa-user-tag"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Manajemen Role</h3>
+        <p class="text-gray-600 text-sm mb-4">Kelola roles/groups dan assign permissions</p>
+        <a href="{% url 'manajemen_aplikasi:roles_list' %}" class="block w-full bg-primary hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center mb-2">
+            <i class="fas fa-list mr-2"></i> Lihat Roles
+        </a>
+        <a href="{% url 'manajemen_aplikasi:roles_create' %}" class="block w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center">
+            <i class="fas fa-plus mr-2"></i> Tambah Role
+        </a>
+    </div>
+    
+    <!-- Functions -->
+    <div class="bg-white rounded-xl p-6 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+        <div class="text-5xl mb-4 bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Manajemen Fungsi</h3>
+        <p class="text-gray-600 text-sm mb-4">Kelola actions seperti view, create, edit, delete</p>
+        <a href="{% url 'manajemen_aplikasi:function_list' %}" class="block w-full bg-primary hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center mb-2">
+            <i class="fas fa-list mr-2"></i> Lihat Functions
+        </a>
+        <a href="{% url 'manajemen_aplikasi:function_create' %}" class="block w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center">
+            <i class="fas fa-plus mr-2"></i> Tambah Function
+        </a>
+    </div>
+    
+    <!-- Controls -->
+    <div class="bg-white rounded-xl p-6 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+        <div class="text-5xl mb-4 bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
+            <i class="fas fa-database"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Manajemen Kontrol</h3>
+        <p class="text-gray-600 text-sm mb-4">Kelola resources seperti ms_pegawai, siasn_dashboard</p>
+        <a href="{% url 'manajemen_aplikasi:control_list' %}" class="block w-full bg-primary hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center mb-2">
+            <i class="fas fa-list mr-2"></i> Lihat Controls
+        </a>
+        <a href="{% url 'manajemen_aplikasi:control_create' %}" class="block w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center">
+            <i class="fas fa-plus mr-2"></i> Tambah Control
+        </a>
+    </div>
+    
+    <!-- Modules -->
+    <div class="bg-white rounded-xl p-6 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+        <div class="text-5xl mb-4 bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
+            <i class="fas fa-th-large"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Manajemen Module</h3>
+        <p class="text-gray-600 text-sm mb-4">Kelola sidebar modules seperti Dashboard, Pegawai, SIASN</p>
+        <a href="{% url 'manajemen_aplikasi:module_list' %}" class="block w-full bg-primary hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center mb-2">
+            <i class="fas fa-list mr-2"></i> Lihat Modules
+        </a>
+        <a href="{% url 'manajemen_aplikasi:module_create' %}" class="block w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center">
+            <i class="fas fa-plus mr-2"></i> Tambah Module
+        </a>
+    </div>
+
+    <!-- Menus (Custom UI) -->
+    <div class="bg-white rounded-xl p-6 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+        <div class="text-5xl mb-4 bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
+            <i class="fas fa-sitemap"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Manajemen Menu</h3>
+        <p class="text-gray-600 text-sm mb-4">Kelola item menu dinamis (parent/child, order, permission)</p>
+        <a href="{% url 'manajemen_aplikasi:menu_list' %}" class="block w-full bg-primary hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center mb-2">
+            <i class="fas fa-list mr-2"></i> Lihat Menu
+        </a>
+        <a href="{% url 'manajemen_aplikasi:menu_create' %}" class="block w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center">
+            <i class="fas fa-plus mr-2"></i> Tambah Menu
+        </a>
+    </div>
+    
+    <!-- Rules -->
+    <div class="bg-white rounded-xl p-6 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+        <div class="text-5xl mb-4 bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
+            <i class="fas fa-gavel"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Manajemen Rules</h3>
+        <p class="text-gray-600 text-sm mb-4">Kombinasi Module + Control + Function</p>
+        <a href="{% url 'manajemen_aplikasi:rule_list' %}" class="block w-full bg-primary hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center mb-2">
+            <i class="fas fa-list mr-2"></i> Lihat Rules
+        </a>
+        <a href="{% url 'manajemen_aplikasi:rule_create' %}" class="block w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center">
+            <i class="fas fa-plus mr-2"></i> Tambah Rule
+        </a>
+    </div>
+    
+    
+</div>
+
+<!-- Recent Items -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+    <div class="bg-white rounded-xl p-6 shadow-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-5">
+            <i class="fas fa-clock mr-2"></i> Recent Functions
+        </h3>
+        {% for func in recent_functions %}
+        <div class="flex justify-between items-center py-4 border-b last:border-0">
+            <div>
+                <div class="font-medium text-gray-800">{{ func.label_fungsi }}</div>
+                <div class="text-gray-600 text-sm">{{ func.nama_fungsi }}</div>
+            </div>
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-br from-primary to-secondary text-white">
+                {{ func.rules.count }} rules
+            </span>
+        </div>
+        {% empty %}
+        <p class="text-gray-500">Belum ada functions</p>
+        {% endfor %}
+    </div>
+    
+    <div class="bg-white rounded-xl p-6 shadow-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-5">
+            <i class="fas fa-clock mr-2"></i> Recent Controls
+        </h3>
+        {% for control in recent_controls %}
+        <div class="flex justify-between items-center py-4 border-b last:border-0">
+            <div>
+                <div class="font-medium text-gray-800">{{ control.label_kontrol }}</div>
+                <div class="text-gray-600 text-sm">{{ control.nama_kontrol }}</div>
+            </div>
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-br from-primary to-secondary text-white">
+                {{ control.rules.count }} rules
+            </span>
+        </div>
+        {% empty %}
+        <p class="text-gray-500">Belum ada controls</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modules with Rules (Reusable Datatable) -->
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    <h3 class="text-lg font-semibold text-gray-800 mb-5">
+        <i class="fas fa-th-large mr-2"></i> Modules & Rules Count
+    </h3>
+
+    {% include 'includes/datatable_filters.html' with show_search=True search_placeholder="Cari nama/label module..." show_status_filter=False %}
+    {% include 'includes/datatable_bulk_actions.html' with show_clear=True show_copy=True show_export=True show_print=True show_delete=False export_formats="csv,excel,pdf" %}
+
+    <div id="table-container">
+        {% include 'manajemen_aplikasi/access/ma_ap_modules/partials/_table.html' %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'js/datatable-helpers.js' %}?v=1.0"></script>
+<script src="{% static 'vendor/amcharts5/index.js' %}"></script>
+<script src="{% static 'vendor/amcharts5/xy.js' %}"></script>
+<script src="{% static 'vendor/amcharts5/themes/Animated.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.modulesIntegratedDT) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+    window.modulesIntegratedDT = new DatatableHelper({
+        tableId: 'modules_table',
+        pageKey: 'modules_dashboard',
+        saveUrl: '{% url "manajemen_aplikasi:dashboard" %}',
+        deleteUrl: '{% url "manajemen_aplikasi:dashboard" %}',
+        csrfToken: csrfToken,
+        exportFormats: ['csv','excel','pdf'],
+        entity: 'modules',
+        useToast: true,
+        debug: true
+    });
+    window.modulesIntegratedDT.init();
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var el = document.getElementById('amchart-permission-summary');
+  if (!el) return;
+  if (el.__am5_inited__) return;
+  el.__am5_inited__ = true;
+
+  function showFallback(msg){
+    try {
+      el.innerHTML = '<div class="h-full w-full flex items-center justify-center text-sm text-gray-500">'+ msg +'</div>';
+    } catch(_) {}
+  }
+
+  if (!window.am5 || !window.am5xy || !window.am5themes_Animated) {
+    console.error('[amCharts] Library not loaded', {am5: !!window.am5, am5xy: !!window.am5xy, theme: !!window.am5themes_Animated});
+    showFallback('Chart belum bisa dimuat (amCharts static tidak terbaca). Cek Network tab apakah file vendor/amcharts5 404.');
+    return;
+  }
+
+  am5.ready(function(){
+    try {
+      var root = am5.Root.new('amchart-permission-summary');
+      root.setThemes([am5themes_Animated.new(root)]);
+
+      var chart = root.container.children.push(
+        am5xy.XYChart.new(root, {
+          panX: true,
+          panY: false,
+          wheelX: 'panX',
+          wheelY: 'zoomX',
+          pinchZoomX: true,
+          layout: root.verticalLayout
+        })
+      );
+
+      chart.set('scrollbarX', am5.Scrollbar.new(root, { orientation: 'horizontal' }));
+
+      var xRenderer = am5xy.AxisRendererX.new(root, { minGridDistance: 20 });
+      xRenderer.labels.template.setAll({ rotation: -30, centerY: am5.p50, centerX: am5.p100, paddingRight: 8 });
+      var xAxis = chart.xAxes.push(
+        am5xy.CategoryAxis.new(root, {
+          categoryField: 'category',
+          renderer: xRenderer
+        })
+      );
+
+      var yAxis = chart.yAxes.push(
+        am5xy.ValueAxis.new(root, {
+          renderer: am5xy.AxisRendererY.new(root, {})
+        })
+      );
+
+      var series = chart.series.push(
+        am5xy.ColumnSeries.new(root, {
+          name: 'Total',
+          xAxis: xAxis,
+          yAxis: yAxis,
+          valueYField: 'value',
+          categoryXField: 'category',
+          tooltip: am5.Tooltip.new(root, {
+            labelText: '{category}: {value}'
+          })
+        })
+      );
+
+      series.columns.template.setAll({ cornerRadiusTL: 6, cornerRadiusTR: 6, strokeOpacity: 0 });
+
+      var data = [
+        { category: 'Functions', value: Number('{{ stats.functions|default:"0" }}') },
+        { category: 'Controls', value: Number('{{ stats.controls|default:"0" }}') },
+        { category: 'Modules', value: Number('{{ stats.modules|default:"0" }}') },
+        { category: 'Rules', value: Number('{{ stats.rules|default:"0" }}') },
+        { category: 'Roles', value: Number('{{ stats.roles|default:"0" }}') },
+        { category: 'Users', value: Number('{{ stats.users|default:"0" }}') }
+      ];
+
+      xAxis.data.setAll(data);
+      series.data.setAll(data);
+      series.appear(800);
+      chart.appear(800, 50);
+    } catch (e) {
+      console.error('[amCharts] Init failed', e);
+      showFallback('Chart error. Cek Console untuk detail error amCharts.');
+    }
+  });
+});
+</script>
+{% endblock %}

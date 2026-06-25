@@ -1,0 +1,102 @@
+{% comment %}
+Reusable Datatable Bulk Actions Template
+
+Usage:
+{% include 'includes/datatable_bulk_actions.html' with
+    show_clear=True
+    show_copy=True
+    show_export=True
+    show_print=True
+    show_delete=True
+    export_formats=['csv','excel','pdf']
+%}
+{% endcomment %}
+
+{% load permission_tags %}
+
+<div id="bulk-actions-bar" class="dt-bulk-actions-bar hidden">
+    <div class="flex flex-wrap items-center gap-3">
+        <!-- Selection Info -->
+        <div class="flex-1 min-w-[200px]">
+            <p class="text-sm text-gray-700">
+                <i class="fas fa-check-circle text-blue-600 mr-2"></i>
+                <span id="selected-count">0</span> item dipilih
+            </p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-2">
+            {% if show_clear|default:True %}
+            <!-- Clear Selection -->
+            <button data-action="clear" type="button" class="dt-action-btn dt-action-btn-ghost">
+                <i class="fas fa-times dt-icon"></i>
+                <span class="hidden sm:inline">Clear</span>
+            </button>
+            {% endif %}
+            
+            {% if show_copy|default:True %}
+            <!-- Copy -->
+            <button data-action="copy" type="button" class="dt-action-btn dt-action-btn-info">
+                <i class="fas fa-copy dt-icon"></i>
+                <span class="hidden sm:inline">Copy</span>
+            </button>
+            {% endif %}
+            
+            {% if show_export|default:True %}
+            <!-- Export Buttons -->
+            {% with formats=export_formats|default:"csv,excel,pdf" %}
+                {% if "csv" in formats %}
+                <button data-action="export-csv" type="button" class="dt-action-btn dt-action-btn-success">
+                    <i class="fas fa-file-csv dt-icon"></i>
+                    <span class="hidden sm:inline">CSV</span>
+                </button>
+                {% endif %}
+                
+                {% if "excel" in formats %}
+                <button data-action="export-excel" type="button" class="dt-action-btn dt-action-btn-primary">
+                    <i class="fas fa-file-excel dt-icon"></i>
+                    <span class="hidden sm:inline">Excel</span>
+                </button>
+                {% endif %}
+                
+                {% if "pdf" in formats %}
+                <button data-action="export-pdf" type="button" class="dt-action-btn dt-action-btn-danger">
+                    <i class="fas fa-file-pdf dt-icon"></i>
+                    <span class="hidden sm:inline">PDF</span>
+                </button>
+                {% endif %}
+            {% endwith %}
+            {% endif %}
+            
+            {% if show_print|default:True %}
+            <!-- Print -->
+            <button data-action="print" type="button" class="dt-action-btn dt-action-btn-warning">
+                <i class="fas fa-print dt-icon"></i>
+                <span class="hidden sm:inline">Print</span>
+            </button>
+            {% endif %}
+            
+            {% if show_delete|default:True %}
+            {% if not perm_prefix %}
+                <!-- Delete -->
+                <button data-action="delete" type="button" class="dt-action-btn dt-action-btn-danger">
+                    <i class="fas fa-trash dt-icon"></i>
+                    <span class="hidden sm:inline">Hapus</span>
+                </button>
+            {% else %}
+                {% with fn=perm_bulk_delete_function|default:'bulk_delete' %}
+                    {% with perm=perm_prefix|add:'.'|add:fn %}
+                        {% if request.user|can:perm %}
+                        <!-- Delete -->
+                        <button data-action="delete" type="button" class="dt-action-btn dt-action-btn-danger">
+                            <i class="fas fa-trash dt-icon"></i>
+                            <span class="hidden sm:inline">Hapus</span>
+                        </button>
+                        {% endif %}
+                    {% endwith %}
+                {% endwith %}
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>

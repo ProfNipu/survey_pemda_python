@@ -1,0 +1,129 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block page_title %}Pertanyaan Survey{% endblock %}
+
+{% block content %}
+{% has_permission 'survey' 'pertanyaan_survey' 'view' as can_back_dashboard %}
+{% has_permission 'survey' 'pertanyaan_survey' 'create' as can_create %}
+{% has_permission 'survey' 'pertanyaan_survey' 'export' as can_export %}
+{% has_permission 'survey' 'pertanyaan_survey' 'delete' as can_delete %}
+{% has_permission 'survey' 'pertanyaan_survey' 'bulk_delete' as can_bulk_delete %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-question-circle mr-2"></i> Manajemen Pertanyaan Survey
+        </h2>
+        <p class="text-gray-500">Kelola pertanyaan untuk setiap jenis survey</p>
+    </div>
+    <div class="flex gap-2">
+        {% if can_create %}
+        <a href="{% url 'survey:pertanyaan_survey_create' %}" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i> Tambah Pertanyaan
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    {# Custom Filters for Pertanyaan Survey (with jenis dropdown) #}
+    <div class="dt-filter-row">
+        <!-- Search Input -->
+        <div class="flex-1 relative dt-search-input">
+            <i class="fas fa-search dt-search-icon"></i>
+            <input 
+                type="text" 
+                id="search-input"
+                name="search"
+                placeholder="Cari kode, pertanyaan, atau jenis survey..."
+                value="{{ request.GET.search|default:'' }}"
+                class="w-full px-4 py-3 pl-12 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                hx-get="{{ request.path }}"
+                hx-trigger="keyup changed delay:500ms"
+                hx-target="#table-container"
+                hx-indicator="#table-loading-overlay"
+                hx-include="[name='search'], [name='jenis']"
+                hx-swap="innerHTML"
+                hx-push-url="true"
+            />
+        </div>
+        
+        <!-- Clear Search Button -->
+        {% if request.GET.search %}
+        <button 
+            onclick="document.getElementById('search-input').value=''; htmx.trigger(document.getElementById('search-input'), 'keyup');"
+            class="dt-action-btn dt-action-btn-secondary"
+        >
+            <i class="fas fa-times"></i>
+            Clear
+        </button>
+        {% endif %}
+        
+        <!-- Jenis Survey Filter -->
+        <div class="w-full sm:w-auto sm:min-w-[250px]">
+            <select 
+                name="jenis"
+                class="px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm sm:flex-1"
+                hx-get="{{ request.path }}"
+                hx-trigger="change"
+                hx-target="#table-container"
+                hx-indicator="#table-loading-overlay"
+                hx-include="[name='search'], [name='jenis']"
+                hx-swap="innerHTML"
+                hx-push-url="true"
+            >
+                <option value="">Semua Jenis Survey</option>
+                {% for jenis in jenis_survey_list %}
+                <option value="{{ jenis.id }}" {% if request.GET.jenis == jenis.id|stringformat:"s" %}selected{% endif %}>
+                    {{ jenis.nama }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    {% include 'includes/datatable_bulk_actions.html' with show_clear=True show_copy=True show_export=can_export show_print=True show_delete=can_bulk_delete export_formats="csv,excel,pdf" %}
+
+    <div id="table-container">
+        {% include 'master_survey/pertanyaan_survey/partials/_table.html' %}
+    </div>
+</div>
+
+<div class="mt-5">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-info-circle mr-2"></i> Info:
+        </strong>
+        <span class="text-blue-700">
+            Pertanyaan Survey adalah daftar pertanyaan yang akan ditampilkan untuk setiap jenis survey. Setiap pertanyaan memiliki bobot untuk perhitungan nilai akhir.
+        </span>
+    </div>
+</div>
+<script src="{% static 'js/datatable-helpers.js' %}?v=1.2"></script>
+<script>
+(function(){
+  function initPertanyaanSurveyDT(){
+    if (window.pertanyaanSurveyIntegratedDT) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+    window.pertanyaanSurveyIntegratedDT = new DatatableHelper({
+        tableId: 'pertanyaan_survey_table',
+        pageKey: 'pertanyaan_survey_list',
+        saveUrl: '{% url "survey:pertanyaan_survey_list" %}',
+        deleteUrl: '{% url "survey:pertanyaan_survey_list" %}',
+        csrfToken: csrfToken,
+        exportFormats: ['csv','excel','pdf'],
+        entity: 'pertanyaan_survey',
+        useToast: true,
+        debug: true
+    });
+    window.pertanyaanSurveyIntegratedDT.init();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPertanyaanSurveyDT);
+  } else {
+    initPertanyaanSurveyDT();
+  }
+})();
+</script>
+{% endblock %}

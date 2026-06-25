@@ -1,0 +1,97 @@
+{% extends "base_landing.html" %}
+{% load static %}
+
+{% block title %}{{ app_name }} - {{ app_instansi }}{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+    <!-- Left Side - Branding (Hidden on Mobile, Visible on Desktop/Laptop) -->
+    {% include 'includes/branding_section.html' %}
+    
+    <!-- Right Side - Login Form -->
+    <div class="flex items-center justify-center w-full">
+        {% include 'includes/login_form.html' %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize login form using reusable functions from app.js
+onReady(function() {
+    // Auto-focus username on desktop
+    autoFocusInput('input[name="username"]');
+    
+    // AJAX form submit with SweetAlert (REUSABLE!)
+    ajaxFormSubmitWithSwal('loginForm', {
+        loadingTitle: 'Memproses...',
+        loadingText: 'Sedang memverifikasi kredensial Anda',
+        successTitle: 'Login Berhasil!',
+        successIcon: 'success',
+        countdown: 3,           // 3 seconds countdown timer
+        progressBar: true,      // Show progress bar
+        showCountdown: true,    // Show "Redirect dalam X detik..."
+        showButton: false,      // No OK button
+        showUsername: true,     // Show username in success message
+        autoRedirect: true      // Auto redirect on success
+    });
+});
+
+// Show {{ app_name }} Info using SweetAlert
+function showAppInfo() {
+    Swal.fire({
+        title: '<strong>{{ app_name }}</strong>',
+        icon: 'info',
+        html: `
+            <div style="text-align: center;">
+                <p style="margin-bottom: 8px; color: #666;">
+                    <strong>{{ app_long_name }}</strong>
+                </p>
+                <p style="margin-bottom: 20px; color: #999; font-size: 14px;">
+                    {{ app_instansi }}
+                </p>
+                
+                <div style="display: grid; gap: 15px; margin-bottom: 20px;">
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 8px;">
+                        <i class="fas fa-tachometer-alt" style="font-size: 24px; color: #0066cc; margin-bottom: 8px;"></i>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Fast & Secure</div>
+                        <div style="font-size: 12px; color: #666;">Powered by Django</div>
+                    </div>
+                    
+                    <div style="background: #f0fdf4; padding: 15px; border-radius: 8px;">
+                        <i class="fas fa-mobile-alt" style="font-size: 24px; color: #00b359; margin-bottom: 8px;"></i>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Responsive</div>
+                        <div style="font-size: 12px; color: #666;">Mobile Friendly</div>
+                    </div>
+                    
+                    <div style="background: #fffbeb; padding: 15px; border-radius: 8px;">
+                        <i class="fas fa-sync" style="font-size: 24px; color: #aa8800; margin-bottom: 8px;"></i>
+                        <div style="font-weight: 600; margin-bottom: 4px;">SIASN</div>
+                        <div style="font-size: 12px; color: #666;">Auto Sync</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                    <p style="font-size: 12px; color: #999; margin-bottom: 8px;">Powered by:</p>
+                    <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                        <span style="background: #e5e7eb; padding: 4px 12px; border-radius: 12px; font-size: 12px;">
+                            <i class="fab fa-python"></i> Python
+                        </span>
+                        <span style="background: #e5e7eb; padding: 4px 12px; border-radius: 12px; font-size: 12px;">
+                            <i class="fas fa-server"></i> Django
+                        </span>
+                        <span style="background: #e5e7eb; padding: 4px 12px; border-radius: 12px; font-size: 12px;">
+                            <i class="fas fa-database"></i> PostgreSQL
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: '90%',
+        maxWidth: '500px'
+    });
+}
+</script>
+{% endblock %}

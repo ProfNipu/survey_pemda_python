@@ -1,0 +1,55 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}Hapus Menu{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Konfirmasi Hapus Menu
+    </h2>
+</div>
+
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-2xl mx-auto">
+    <div class="text-center mb-6">
+        <i class="fas fa-sitemap text-7xl text-red-500 mb-4 block"></i>
+        <h4 class="text-xl font-semibold text-gray-800">Apakah Anda yakin ingin menghapus menu ini?</h4>
+    </div>
+
+    <div class="bg-amber-50 border-l-4 border-amber-500 p-5 rounded-lg my-5">
+        <strong class="text-amber-800">
+            <i class="fas fa-info-circle mr-2"></i> Informasi Menu:
+        </strong>
+        <ul class="mt-3 space-y-2 text-amber-700">
+            <li><span class="font-semibold">Nama:</span> {{ menu_item.name }}</li>
+            <li><span class="font-semibold">Parent:</span> {{ menu_item.parent|default:'-' }}</li>
+            <li><span class="font-semibold">Type:</span> {{ menu_item.type }}</li>
+            <li><span class="font-semibold">Order:</span> {{ menu_item.order }}</li>
+            <li><span class="font-semibold">Category:</span> {{ menu_item.category }}</li>
+            <li><span class="font-semibold">Permission:</span> {{ menu_item.permission_key|default:'-' }}</li>
+            <li><span class="font-semibold">URL Name:</span> {{ menu_item.url_name|default:'-' }}</li>
+            <li><span class="font-semibold">External URL:</span> {{ menu_item.external_url|default:'-' }}</li>
+        </ul>
+    </div>
+
+    {% if child_count > 0 %}
+    <div class="bg-red-50 border-l-4 border-red-500 p-5 rounded-lg my-5">
+        <strong class="text-red-800">
+            <i class="fas fa-exclamation-triangle mr-2"></i> Peringatan!
+        </strong>
+        <p class="mb-2 mt-2 text-red-700">Menu ini memiliki <strong>{{ child_count }} anak</strong>. Menghapus menu akan ikut menghapus semua children.</p>
+    </div>
+    {% endif %}
+
+    <form method="post" class="mt-6">
+        {% csrf_token %}
+        <div class="flex gap-3">
+            <button type="submit" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                <i class="fas fa-trash mr-2"></i> Ya, Hapus Menu
+            </button>
+            <a href="{% url 'manajemen_aplikasi:menu_list' %}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-colors text-center">
+                <i class="fas fa-times mr-2"></i> Batal
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

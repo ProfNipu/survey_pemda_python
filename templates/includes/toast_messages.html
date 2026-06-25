@@ -1,0 +1,77 @@
+<!-- Toast Notification Container (Pure Tailwind) -->
+<div id="toast-container" class="fixed top-4 right-4 z-toast flex flex-col gap-3 max-w-sm">
+    {% if messages %}
+        {% for message in messages %}
+        <div class="toast-message relative overflow-hidden rounded-lg shadow-lg border-l-4 {% if message.tags == 'success' %}bg-green-500 border-green-700{% elif message.tags == 'error' or message.tags == 'danger' %}bg-red-500 border-red-700{% elif message.tags == 'warning' %}bg-amber-500 border-amber-700{% else %}bg-blue-500 border-blue-700{% endif %} text-white transform transition-all duration-500 ease-in-out opacity-0 translate-x-full" 
+             role="alert" 
+             aria-live="assertive" 
+             aria-atomic="true">
+            <div class="flex items-start p-4">
+                <div class="flex items-center gap-3 flex-1">
+                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}fa-exclamation-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} text-xl"></i>
+                    <span class="text-sm font-medium">{{ message }}</span>
+                </div>
+                <button type="button" class="ml-3 text-white hover:text-gray-200 transition-colors" onclick="removeToast(this)" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Timer Progress Bar -->
+            <div class="absolute bottom-0 left-0 h-1.5 bg-black/10 w-full overflow-hidden">
+                <div class="toast-timer h-full shadow-sm" 
+                     style="width: 100%; background: linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 100%);"></div>
+            </div>
+        </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<script>
+// Pure JavaScript toast functionality (No Bootstrap dependency)
+function removeToast(button) {
+    const toast = button.closest('.toast-message');
+    const timer = toast.querySelector('.toast-timer');
+    if (timer) timer.style.transition = 'none'; // Stop timer animation
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => toast.remove(), 300);
+}
+
+// Auto-show and auto-hide toasts
+document.addEventListener('DOMContentLoaded', function() {
+    const toasts = document.querySelectorAll('.toast-message');
+    const TOAST_DURATION = 5000; // 5 seconds
+    
+    toasts.forEach((toast, index) => {
+        const timer = toast.querySelector('.toast-timer');
+        
+        // Staggered appearance
+        setTimeout(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+            
+            // Start timer animation - must be after toast is visible
+            if (timer) {
+                // Force reflow to ensure initial state is rendered
+                timer.offsetHeight;
+                
+                // Add transition and start animation
+                timer.style.transition = `width ${TOAST_DURATION}ms linear`;
+                
+                // Start countdown on next frame
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        timer.style.width = '0%';
+                    });
+                });
+            }
+        }, index * 100);
+        
+        // Auto-hide after duration
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 300);
+        }, TOAST_DURATION + (index * 100));
+    });
+});
+</script>

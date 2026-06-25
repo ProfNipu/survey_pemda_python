@@ -1,0 +1,103 @@
+<!-- Branding Section - App Info & Features (Reusable Component) -->
+<!-- Usage: include 'includes/branding_section.html' -->
+
+<div class="branding-section text-white text-center md:text-left" style="display: none;">
+    <style>
+        @media (min-width: 768px) {
+            .branding-section { display: block !important; }
+        }
+        
+        /* Animated Survey Icon */
+        .survey-icon {
+            animation: surveyPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes surveyPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.05) rotate(-2deg); }
+            50% { transform: scale(1.1) rotate(2deg); }
+            75% { transform: scale(1.05) rotate(-2deg); }
+        }
+        
+        /* Animated Feature Cards */
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .feature-card i {
+            animation: iconFloat 2s ease-in-out infinite;
+        }
+        
+        .feature-card:nth-child(1) i { animation-delay: 0s; }
+        .feature-card:nth-child(2) i { animation-delay: 0.3s; }
+        .feature-card:nth-child(3) i { animation-delay: 0.6s; }
+        
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+    <script>
+        // Force show on desktop/laptop
+        if (window.innerWidth >= 768) {
+            document.currentScript.parentElement.style.display = 'block';
+        }
+        // Re-check on resize
+        window.addEventListener('resize', function() {
+            var branding = document.querySelector('.branding-section');
+            if (window.innerWidth >= 768) {
+                branding.style.display = 'block';
+            } else {
+                branding.style.display = 'none';
+            }
+        });
+    </script>
+    
+    <!-- App Header -->
+    <div class="mb-8">
+        <i class="fas fa-poll-h survey-icon text-8xl mb-6 inline-block"></i>
+        <h1 class="text-5xl lg:text-6xl font-bold mb-4">{{ app_name }}</h1>
+        <p class="text-xl lg:text-2xl mb-4 opacity-90">{{ app_long_name }}</p>
+        <p class="text-lg opacity-80">{{ app_instansi }}</p>
+    </div>
+    
+    <!-- Features Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="feature-card bg-white/10 backdrop-blur-lg rounded-xl p-4">
+            <i class="fas fa-clipboard-list text-3xl mb-2"></i>
+            <h3 class="font-semibold">Survey Online</h3>
+            <p class="text-sm opacity-80">Kuesioner Digital</p>
+        </div>
+        <div class="feature-card bg-white/10 backdrop-blur-lg rounded-xl p-4">
+            <i class="fas fa-chart-pie text-3xl mb-2"></i>
+            <h3 class="font-semibold">Analisis Data</h3>
+            <p class="text-sm opacity-80">Real-time Analytics</p>
+        </div>
+        <div class="feature-card bg-white/10 backdrop-blur-lg rounded-xl p-4">
+            <i class="fas fa-users text-3xl mb-2"></i>
+            <h3 class="font-semibold">Multi Responden</h3>
+            <p class="text-sm opacity-80">Akses Mudah</p>
+        </div>
+    </div>
+    
+    <!-- Tech Stack -->
+    <div class="flex items-center justify-center lg:justify-start gap-4 text-sm opacity-80">
+        <div class="flex items-center gap-2">
+            <i class="fab fa-python text-2xl"></i>
+            <span>Python & Django</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <i class="fas fa-chart-bar text-2xl"></i>
+            <span>Analytics</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <i class="fas fa-database text-2xl"></i>
+            <span>MySQL</span>
+        </div>
+    </div>
+</div>

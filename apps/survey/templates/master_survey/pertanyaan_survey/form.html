@@ -1,0 +1,123 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}{% if edit_mode %}Edit{% else %}Tambah{% endif %} Pertanyaan Survey{% endblock %}
+
+{% block content %}
+{% url 'survey:pertanyaan_survey_list' as back_url %}
+{% include 'includes/crud_form_header.html' with icon_class='fas fa-question-circle' title=edit_mode|yesno:'Edit Pertanyaan Survey,Tambah Pertanyaan Survey' subtitle=edit_mode|yesno:'Update pertanyaan survey,Buat pertanyaan survey baru' back_url=back_url %}
+
+<div id="pertanyaan-survey-form-container">
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-3xl mx-auto">
+    <form method="post" id="pertanyaanSurveyForm" novalidate hx-post="{{ request.path }}" hx-trigger="submit" hx-target="#pertanyaan-survey-form-container" hx-select="#pertanyaan-survey-form-container" hx-swap="outerHTML">
+        {% csrf_token %}
+        
+        <div class="mb-6">
+            <label for="id_jenis_survey" class="block font-medium text-gray-700 mb-2">
+                Jenis Survey <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(Pilih jenis survey)</span>
+            </label>
+            {{ form.jenis_survey }}
+            {% if form.jenis_survey.help_text %}
+            <p class="text-sm text-gray-500 mt-1">{{ form.jenis_survey.help_text }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-6">
+            <label for="id_kode_pertanyaan" class="block font-medium text-gray-700 mb-2">
+                Kode Pertanyaan <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(Contoh: survey01, q01)</span>
+            </label>
+            {{ form.kode_pertanyaan }}
+            {% if form.kode_pertanyaan.help_text %}
+            <p class="text-sm text-gray-500 mt-1">{{ form.kode_pertanyaan.help_text }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-6">
+            <label for="id_judul" class="block font-medium text-gray-700 mb-2">
+                Judul Aspek <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(Contoh: Berorientasi Pelayanan, Akuntabel)</span>
+            </label>
+            {{ form.judul }}
+            {% if form.judul.help_text %}
+            <p class="text-sm text-gray-500 mt-1">{{ form.judul.help_text }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-6">
+            <label for="id_pertanyaan" class="block font-medium text-gray-700 mb-2">
+                Pertanyaan Lengkap
+                <span class="text-sm text-gray-500 font-normal">(Opsional)</span>
+            </label>
+            {{ form.pertanyaan }}
+            {% if form.pertanyaan.help_text %}
+            <p class="text-sm text-gray-500 mt-1">{{ form.pertanyaan.help_text }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+                <label for="id_urutan" class="block font-medium text-gray-700 mb-2">
+                    Urutan <span class="text-red-500">*</span>
+                </label>
+                {{ form.urutan }}
+                {% if form.urutan.help_text %}
+                <p class="text-sm text-gray-500 mt-1">{{ form.urutan.help_text }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="id_bobot" class="block font-medium text-gray-700 mb-2">
+                    Bobot <span class="text-red-500">*</span>
+                </label>
+                {{ form.bobot }}
+                {% if form.bobot.help_text %}
+                <p class="text-sm text-gray-500 mt-1">{{ form.bobot.help_text }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="flex items-center mb-6 mt-5">
+            {{ form.is_active }}
+            <label class="ml-2 text-gray-700" for="id_is_active">
+                {{ form.is_active.label }}
+            </label>
+        </div>
+        
+        {% url 'survey:pertanyaan_survey_list' as cancel_url %}
+        {% include 'includes/crud_form_actions.html' with submit_label=edit_mode|yesno:'Update,Simpan' cancel_url=cancel_url cancel_label='Batal' %}
+    </form>
+</div>
+
+<script>
+(function(){
+  bindFormSwal('#pertanyaan-survey-form-container', {
+    successEvent: 'pertanyaan-survey-form-success',
+    invalidEvent: 'pertanyaan-survey-form-invalid',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    confirmButtonText: 'OK',
+    scrollToTop: true,
+    dedupeInvalid: false
+  });
+})();
+</script>
+</div>
+
+<div class="mt-5 max-w-3xl mx-auto">
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <strong class="text-amber-800">
+            <i class="fas fa-lightbulb mr-2"></i> Tips Pertanyaan Survey:
+        </strong>
+        <ul class="mt-2 mb-0 space-y-1 text-amber-700 text-sm list-disc list-inside">
+            <li>Gunakan kode pertanyaan yang unik (contoh: survey01, survey02)</li>
+            <li><strong>Judul Aspek</strong>: Judul singkat untuk aspek penilaian (contoh: "Berorientasi Pelayanan")</li>
+            <li><strong>Pertanyaan Lengkap</strong>: Kalimat pertanyaan detail yang akan ditampilkan di form (opsional)</li>
+            <li>Urutan menentukan tampilan pertanyaan (1, 2, 3, ...)</li>
+            <li>Bobot default 1.0 - bisa diubah untuk pertanyaan yang lebih penting</li>
+            <li>Pertanyaan yang tidak aktif tidak akan ditampilkan di form penilaian</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,7 @@
+{% load render_table from django_tables2 %}
+
+<div class="overflow-x-auto">
+    <div class="w-full {{ min_w_class|default:'min-w-[1100px]' }}">
+        {% render_table table %}
+    </div>
+</div>

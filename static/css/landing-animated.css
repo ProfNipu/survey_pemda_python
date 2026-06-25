@@ -1,0 +1,175 @@
+/* Landing Page Animated Styles - Reusable Component */
+
+/* Animated Gradient Background - Pesisir Selatan Colors */
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.animated-gradient {
+    background: linear-gradient(-45deg, #0066cc, #00b359, #aa8800, #0099ff);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+}
+
+/* Float Icons with Rotation - Randomized! */
+@keyframes floatRandom1 {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 0.25; }
+    50% { transform: translate(-50px, -70px) rotate(15deg) scale(1.3); opacity: 0.6; }
+}
+@keyframes floatRandom2 {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 0.25; }
+    50% { transform: translate(60px, -80px) rotate(-20deg) scale(1.3); opacity: 0.6; }
+}
+@keyframes floatRandom3 {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 0.25; }
+    50% { transform: translate(-40px, 60px) rotate(25deg) scale(1.3); opacity: 0.6; }
+}
+@keyframes floatRandom4 {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 0.25; }
+    50% { transform: translate(70px, 40px) rotate(-15deg) scale(1.3); opacity: 0.6; }
+}
+@keyframes floatRandom5 {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 0.25; }
+    50% { transform: translate(55px, -60px) rotate(30deg) scale(1.3); opacity: 0.6; }
+}
+@keyframes floatRandom6 {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 0.25; }
+    50% { transform: translate(-65px, 70px) rotate(-25deg) scale(1.3); opacity: 0.6; }
+}
+@keyframes floatRandom7 {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 0.25; }
+    50% { transform: translate(45px, -55px) rotate(20deg) scale(1.3); opacity: 0.6; }
+}
+@keyframes floatRandom8 {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 0.25; }
+    50% { transform: translate(-55px, -45px) rotate(-30deg) scale(1.3); opacity: 0.6; }
+}
+@keyframes floatRandom9 {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 0.25; }
+    50% { transform: translate(65px, 50px) rotate(18deg) scale(1.3); opacity: 0.6; }
+}
+@keyframes floatRandom10 {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 0.25; }
+    50% { transform: translate(-48px, -68px) rotate(-22deg) scale(1.3); opacity: 0.6; }
+}
+
+.float-1 { animation: floatRandom1 5.5s ease-in-out infinite; }
+.float-2 { animation: floatRandom2 4.2s ease-in-out infinite; }
+.float-3 { animation: floatRandom3 6s ease-in-out infinite; }
+.float-4 { animation: floatRandom4 4.8s ease-in-out infinite; }
+.float-5 { animation: floatRandom5 5.8s ease-in-out infinite; }
+.float-6 { animation: floatRandom6 4.5s ease-in-out infinite; }
+.float-7 { animation: floatRandom7 5.3s ease-in-out infinite; }
+.float-8 { animation: floatRandom8 4.9s ease-in-out infinite; }
+.float-9 { animation: floatRandom9 5.6s ease-in-out infinite; }
+.float-10 { animation: floatRandom10 4.4s ease-in-out infinite; }
+
+.bounce-delay-1 { animation-delay: 0s; }
+.bounce-delay-2 { animation-delay: 0.5s; }
+.bounce-delay-3 { animation-delay: 1s; }
+.bounce-delay-4 { animation-delay: 1.5s; }
+.bounce-delay-5 { animation-delay: 2s; }
+.bounce-delay-6 { animation-delay: 2.5s; }
+.bounce-delay-7 { animation-delay: 3s; }
+.bounce-delay-8 { animation-delay: 3.5s; }
+
+/* Animated Bar Chart */
+@keyframes barGrow {
+    0%, 100% { height: 40%; }
+    50% { height: 80%; }
+}
+
+.animated-bar {
+    animation: barGrow 3s ease-in-out infinite;
+}
+
+/* Animated Pie Chart - Spinning */
+@keyframes pieSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.animated-pie {
+    animation: pieSpin 8s linear infinite;
+}
+
+/* Animated Donut Chart - Counter Spinning */
+.animated-donut {
+    animation: pieSpin 6s linear infinite reverse;
+}
+
+/* Animated Line Chart - Wave */
+@keyframes lineWave {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.2); }
+}
+
+.animated-line {
+    animation: lineWave 2.5s ease-in-out infinite;
+}
+
+/* Preloader Styles */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(-45deg, #0066cc, #00b359, #aa8800, #0099ff);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease-out;
+}
+
+#preloader.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Spinner Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spinner {
+    width: 80px;
+    height: 80px;
+    border: 8px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1.5rem auto;
+}
+
+.preloader-content {
+    text-align: center;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.preloader-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}

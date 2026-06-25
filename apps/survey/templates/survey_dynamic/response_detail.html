@@ -1,0 +1,166 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    Detail Penilaian - {{ app_name }}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .score-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .aspect-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background: white;
+    }
+    
+    .score-bar {
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+    
+    .score-fill {
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    
+    .score-1 { background: #dc3545; }
+    .score-2 { background: #fd7e14; }
+    .score-3 { background: #ffc107; }
+    .score-4 { background: #28a745; }
+    .score-5 { background: #198754; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Detail Penilaian</h1>
+            <p class="text-muted">{{ response.survey_config.nama_survey }} - {{ response.survey_config.tahun }}</p>
+        </div>
+        <a href="{% url 'survey:survey_response_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Info Penilaian -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Informasi Penilaian</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Pegawai Dinilai:</strong><br>
+                        {{ response.nama_dinilai }}<br>
+                        <small class="text-muted">{{ response.nip_dinilai }}</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Jabatan:</strong><br>
+                        {{ response.jabatan_dinilai }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Unit Kerja:</strong><br>
+                        {{ response.unit_kerja_dinilai }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Status:</strong><br>
+                        {% if response.status == 'submitted' %}
+                            <span class="badge bg-success">Submitted</span>
+                        {% elif response.status == 'draft' %}
+                            <span class="badge bg-warning">Draft</span>
+                        {% elif response.status == 'reviewed' %}
+                            <span class="badge bg-info">Reviewed</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Tanggal Submit:</strong><br>
+                        {% if response.submitted_at %}
+                            {{ response.submitted_at|date:"d M Y H:i" }}
+                        {% else %}
+                            <span class="text-muted">Belum submit</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detail Penilaian -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Detail Penilaian per Aspek</h5>
+                </div>
+                <div class="card-body">
+                    {% for detail in detail_jawaban %}
+                        <div class="aspect-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ detail.aspek.nama_aspek }}</h6>
+                                    <p class="text-muted small mb-2">{{ detail.aspek.deskripsi }}</p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary fs-6">{{ detail.nilai }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="score-bar">
+                                <div class="score-fill score-{{ detail.nilai }}" 
+                                     style="width: {{ detail.nilai|floatformat:0|add:0|mul:20 }}%"></div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-2">
+                                <small class="text-muted">{{ detail.aspek.skala_min }} - {{ detail.aspek.label_min }}</small>
+                                <small class="text-muted">{{ detail.aspek.skala_max }} - {{ detail.aspek.label_max }}</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Komentar dan Saran -->
+            {% if response.komentar or response.saran %}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Komentar dan Saran</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if response.komentar %}
+                            <div class="mb-3">
+                                <strong>Komentar:</strong>
+                                <p class="mt-2">{{ response.komentar }}</p>
+                            </div>
+                        {% endif %}
+                        
+                        {% if response.saran %}
+                            <div class="mb-3">
+                                <strong>Saran:</strong>
+                                <p class="mt-2">{{ response.saran }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

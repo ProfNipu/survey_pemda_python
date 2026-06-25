@@ -1,0 +1,447 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block page_title %}Data Pegawai ESIMPEG{% endblock %}
+
+{% block content %}
+{% has_permission 'api_simpeg' 'pegawai' 'view' as can_view %}
+{% has_permission 'api_simpeg' 'pegawai' 'sync' as can_sync %}
+{% has_permission 'api_simpeg' 'pegawai' 'export' as can_export %}
+
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-users mr-2"></i> Data Pegawai ESIMPEG
+        </h2>
+        <p class="text-gray-500">Data pegawai dari database (sync manual dari API ESIMPEG)</p>
+        {% if last_sync %}
+        <p class="text-xs text-gray-400 mt-1">
+            <i class="fas fa-clock mr-1"></i> Terakhir sync: {{ last_sync.synced_at|date:"d M Y H:i" }} 
+            ({{ last_sync.total_records }} records)
+        </p>
+        {% endif %}
+    </div>
+    <div class="flex gap-2">
+        {% if can_sync %}
+        <button onclick="syncPegawai()" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-sync mr-2"></i> Sinkronisasi
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    {# Filters - Reusable #}
+    {% include 'includes/datatable_filters.html' with show_search=True search_placeholder="Cari nama atau NIP..." show_status_filter=False %}
+
+    {# Bulk Actions - Reusable #}
+    {% include 'includes/datatable_bulk_actions.html' with show_clear=True show_copy=True show_export=can_export show_print=True show_delete=False export_formats="csv,excel,pdf" %}
+
+    {# Table Container #}
+    <div id="table-container">
+        {% include 'api_simpeg/partials/_pegawai_table.html' %}
+    </div>
+</div>
+
+<div class="mt-5">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-info-circle mr-2"></i> Info:
+        </strong>
+        <span class="text-blue-700">
+            Data pegawai disimpan di database Survey Pemda. Klik tombol "Sinkronisasi" untuk mengambil data terbaru dari ESIMPEG API.
+            Data lama tetap tersimpan untuk keperluan riwayat survey.
+        </span>
+    </div>
+</div>
+
+<script src="{% static 'js/datatable-helpers.js' %}?v=1.2"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.pegawaiIntegratedDT) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    window.pegawaiIntegratedDT = new DatatableHelper({
+        tableId: 'pegawai_table',
+        pageKey: 'pegawai_list',
+        saveUrl: '{% url "api_simpeg:pegawai_list" %}',
+        deleteUrl: '',
+        csrfToken: csrfToken,
+        exportFormats: ['csv','excel','pdf'],
+        entity: 'pegawai',
+        useToast: true,
+        debug: true
+    });
+    window.pegawaiIntegratedDT.init();
+});
+
+function syncPegawai(password = null) {
+    // If password provided, skip confirmation and go straight to sync
+    if (password) {
+        startSync(password);
+        return;
+    }
+    
+    Swal.fire({
+        title: 'Sinkronisasi Data Pegawai',
+        html: `
+            <p class="mb-3">Proses ini akan:</p>
+            <ul class="text-left text-sm space-y-1 mb-3">
+                <li><i class="fas fa-check text-green-500 mr-2"></i> Mengambil semua data pegawai dari ESIMPEG API</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i> Menyimpan/update ke database Survey Pemda</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i> Data lama tetap tersimpan (historical)</li>
+            </ul>
+            <p class="text-sm text-gray-600">Proses mungkin memakan waktu beberapa menit.</p>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Sinkronkan!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            startSync();
+        }
+    });
+}
+
+function startSync(password = null) {
+    // Hide datatable loading overlay if exists
+    const loadingOverlay = document.getElementById('dt-loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+    }
+    
+    // Show SweetAlert loading with progress bar
+    Swal.fire({
+        title: 'Sedang Menyinkronkan...',
+        html: `
+            <div class="mb-4">
+                <div class="w-full bg-gray-200 rounded-full h-6 mb-2">
+                    <div id="sync-progress-bar" class="bg-blue-600 h-6 rounded-full transition-all duration-300" style="width: 0%">
+                        <span id="sync-progress-text" class="text-white text-xs font-semibold flex items-center justify-center h-full">0%</span>
+                    </div>
+                </div>
+                <p id="sync-status-text" class="text-sm text-gray-600">Memulai sinkronisasi...</p>
+                <p id="sync-detail-text" class="text-xs text-gray-500 mt-2">Halaman: 0 / 0 | Records: 0</p>
+            </div>
+        `,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    // Call sync API
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                    document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    
+    const formData = new FormData();
+    if (password) {
+        formData.append('password', password);
+    }
+    
+    fetch('{% url "api_simpeg:pegawai_sync" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Start polling for progress immediately
+            const syncId = data.sync_id;
+            console.log('Sync started with ID:', syncId);
+            pollSyncProgress(syncId);
+        } else {
+            // Check if password required
+            if (data.code === 'PASSWORD_REQUIRED') {
+                showPasswordPopup();
+            } else if (data.code === 'LOGIN_FAILED') {
+                Swal.fire({
+                    title: 'Login Gagal',
+                    html: `
+                        <p class="mb-3">${data.error}</p>
+                        <p class="text-sm text-gray-600">
+                            Silakan coba lagi atau logout dan login ulang.
+                        </p>
+                    `,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                // Other errors
+                const isAuthError = data.error && (
+                    data.error.includes('Token') || 
+                    data.error.includes('login') ||
+                    data.error.includes('database lokal')
+                );
+                
+                if (isAuthError) {
+                    Swal.fire({
+                        title: 'Autentikasi Diperlukan',
+                        html: `
+                            <p class="mb-3">${data.error}</p>
+                            <p class="text-sm text-gray-600">
+                                Untuk melakukan sinkronisasi, Anda harus login menggunakan akun ESIMPEG.
+                            </p>
+                        `,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: '<i class="fas fa-sign-out-alt mr-2"></i> Logout & Login Ulang',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Redirect to logout
+                            window.location.href = '{% url "accounts:logout" %}';
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Gagal!',
+                        text: data.error || 'Terjadi kesalahan saat sinkronisasi',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Sync error:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: 'Terjadi kesalahan koneksi. Silakan coba lagi.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    });
+}
+
+function showPasswordPopup() {
+    Swal.fire({
+        title: 'Masukkan Password ESIMPEG',
+        html: `
+            <p class="mb-4 text-sm text-gray-600">
+                Token ESIMPEG tidak ditemukan. Silakan masukkan password ESIMPEG Anda untuk melanjutkan sinkronisasi.
+            </p>
+            <input type="password" id="esimpeg-password" class="swal2-input" placeholder="Password ESIMPEG" autocomplete="current-password">
+            <p class="mt-2 text-xs text-gray-500">
+                <i class="fas fa-info-circle mr-1"></i> Password akan digunakan untuk login ke ESIMPEG API
+            </p>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-key mr-2"></i> Login & Sinkronkan',
+        cancelButtonText: 'Batal',
+        focusConfirm: false,
+        preConfirm: () => {
+            const password = document.getElementById('esimpeg-password').value;
+            if (!password) {
+                Swal.showValidationMessage('Password tidak boleh kosong');
+                return false;
+            }
+            return password;
+        }
+    }).then((result) => {
+        if (result.isConfirmed && result.value) {
+            // Retry sync with password
+            syncPegawai(result.value);
+        }
+    });
+}
+
+function pollSyncProgress(syncId) {
+    const progressBar = document.getElementById('sync-progress-bar');
+    const progressText = document.getElementById('sync-progress-text');
+    const statusText = document.getElementById('sync-status-text');
+    const detailText = document.getElementById('sync-detail-text');
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                    document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    
+    let pollCount = 0;
+    const maxPolls = 300; // Max 5 minutes (300 seconds)
+    
+    const pollInterval = setInterval(() => {
+        pollCount++;
+        
+        // Safety check - stop after max polls
+        if (pollCount > maxPolls) {
+            clearInterval(pollInterval);
+            Swal.fire({
+                title: 'Timeout!',
+                text: 'Sinkronisasi memakan waktu terlalu lama. Silakan cek status di database.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        
+        fetch(`/api-simpeg/pegawai/sync/progress/${syncId}/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const percentage = data.progress_percentage;
+                
+                console.log(`Poll ${pollCount}: ${percentage}% (Page ${data.current_page}/${data.total_pages})`);
+                
+                // Update progress bar
+                if (progressBar) {
+                    progressBar.style.width = percentage + '%';
+                }
+                if (progressText) {
+                    progressText.textContent = percentage + '%';
+                }
+                
+                // Update status text
+                if (statusText) {
+                    if (data.status === 'running') {
+                        statusText.textContent = 'Mengambil data dari ESIMPEG API...';
+                    } else if (data.status === 'completed') {
+                        statusText.textContent = 'Sinkronisasi selesai!';
+                    } else if (data.status === 'failed') {
+                        statusText.textContent = 'Sinkronisasi gagal!';
+                    }
+                }
+                
+                // Update detail text
+                if (detailText) {
+                    detailText.textContent = `Halaman: ${data.current_page} / ${data.total_pages} | Records: ${data.processed_records} (${data.new_records} baru, ${data.updated_records} update)`;
+                }
+                
+                // Check if completed
+                if (data.status === 'completed') {
+                    clearInterval(pollInterval);
+                    
+                    console.log('Sync completed!');
+                    
+                    // Show success message
+                    setTimeout(() => {
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            html: `
+                                <p class="mb-3">Berhasil sync ${data.processed_records} pegawai (${data.new_records} baru, ${data.updated_records} diupdate)</p>
+                                <div class="text-sm text-left space-y-1">
+                                    <p><strong>Total Records:</strong> ${data.processed_records}</p>
+                                    <p><strong>Records Baru:</strong> ${data.new_records}</p>
+                                    <p><strong>Records Diupdate:</strong> ${data.updated_records}</p>
+                                </div>
+                            `,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            // Refresh datatable using HTMX (no page reload)
+                            refreshDatatable();
+                        });
+                    }, 500);
+                } else if (data.status === 'failed') {
+                    clearInterval(pollInterval);
+                    
+                    console.error('Sync failed:', data.error_message);
+                    
+                    Swal.fire({
+                        title: 'Gagal!',
+                        text: data.error_message || 'Terjadi kesalahan saat sinkronisasi',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            } else {
+                console.error('Poll failed:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Poll error:', error);
+            // Don't stop polling on network error, might be temporary
+        });
+    }, 1000); // Poll every 1 second
+}
+
+function refreshDatatable() {
+    console.log('Refreshing datatable...');
+    
+    // Show loading overlay (reusable component style)
+    const tableContainer = document.getElementById('table-container');
+    if (!tableContainer) {
+        console.error('Table container not found');
+        return;
+    }
+    
+    // Create loading overlay
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'refresh-loading-overlay';
+    loadingOverlay.className = 'absolute inset-0 bg-white/80 flex items-center justify-center z-50';
+    loadingOverlay.innerHTML = `
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-3"></div>
+            <p class="text-gray-600 font-medium">Memuat data terbaru...</p>
+        </div>
+    `;
+    
+    // Make container relative for absolute positioning
+    tableContainer.style.position = 'relative';
+    tableContainer.appendChild(loadingOverlay);
+    
+    // Get current URL with filters
+    const currentUrl = window.location.href;
+    const url = new URL(currentUrl);
+    
+    // Fetch updated table via HTMX
+    fetch(url.pathname + url.search, {
+        method: 'GET',
+        headers: {
+            'HX-Request': 'true',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Remove loading overlay
+        if (loadingOverlay && loadingOverlay.parentNode) {
+            loadingOverlay.remove();
+        }
+        
+        // Update table container
+        tableContainer.innerHTML = html;
+        
+        // Re-initialize datatable helper if exists
+        if (window.pegawaiIntegratedDT) {
+            window.pegawaiIntegratedDT.init();
+        }
+        
+        console.log('Datatable refreshed successfully');
+    })
+    .catch(error => {
+        console.error('Error refreshing datatable:', error);
+        
+        // Remove loading overlay
+        if (loadingOverlay && loadingOverlay.parentNode) {
+            loadingOverlay.remove();
+        }
+        
+        // Show error message
+        Swal.fire({
+            title: 'Error!',
+            text: 'Gagal memuat data terbaru. Silakan refresh halaman.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    });
+}
+</script>
+{% endblock %}

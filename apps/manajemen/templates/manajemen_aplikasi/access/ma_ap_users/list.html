@@ -1,0 +1,74 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load permission_tags %}
+
+{% block page_title %}Manajemen User{% endblock %}
+
+{% block content %}
+{% has_permission 'pengaturan' 'permission_dashboard' 'view' as can_back_dashboard %}
+{% has_permission 'pengaturan' 'permission_user' 'create' as can_create %}
+{% has_permission 'pengaturan' 'permission_user' 'export' as can_export %}
+{% has_permission 'pengaturan' 'permission_user' 'bulk_delete' as can_bulk_delete %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-users mr-2"></i> Manajemen User
+        </h2>
+        <p class="text-gray-500">Kelola users, create, edit, assign roles dengan sorting & pagination</p>
+    </div>
+    <div class="flex gap-2">
+        {% if can_back_dashboard %}
+        <a href="{% url 'manajemen_aplikasi:dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali
+        </a>
+        {% endif %}
+        {% if can_create %}
+        <a href="{% url 'manajemen_aplikasi:users_create' %}" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i> Tambah User
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    {% include 'includes/datatable_filters.html' with show_search=True search_placeholder="Cari berdasarkan username, email, atau nama..." show_status_filter=True status_list=status_list %}
+    
+    {% include 'includes/datatable_bulk_actions.html' with show_clear=True show_copy=True show_export=can_export show_print=True show_delete=can_bulk_delete export_formats="csv,excel,pdf" %}
+    
+    <div id="table-container">
+        {% include 'manajemen_aplikasi/access/ma_ap_users/partials/_table.html' %}
+    </div>
+</div>
+
+<div class="mt-5">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-info-circle mr-2"></i> Info:
+        </strong>
+        <span class="text-blue-700">
+            Kelola semua users di sistem. Anda bisa create, edit, delete users dan assign roles.
+        </span>
+    </div>
+</div>
+
+<script src="{% static 'js/datatable-helpers.js' %}?v=1.2"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.usersIntegratedDT) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+    window.usersIntegratedDT = new DatatableHelper({
+        tableId: 'users_table',
+        pageKey: 'user_list',
+        saveUrl: '{% url "manajemen_aplikasi:users_list" %}',
+        deleteUrl: '{% url "manajemen_aplikasi:users_list" %}',
+        csrfToken: csrfToken,
+        exportFormats: ['csv','excel','pdf'],
+        entity: 'users',
+        useToast: true,
+        debug: true
+    });
+    window.usersIntegratedDT.init();
+});
+</script>
+{% endblock %}

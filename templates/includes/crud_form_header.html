@@ -1,0 +1,15 @@
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+      {% if icon_class %}<i class="{{ icon_class }} mr-2"></i>{% endif %}{{ title }}
+    </h2>
+    {% if subtitle %}<p class="text-gray-500">{{ subtitle }}</p>{% endif %}
+  </div>
+  {% if back_url and show_back|default:True %}
+  <div class="flex gap-2">
+    <a href="{{ back_url }}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+      <i class="fas fa-arrow-left mr-2"></i> {{ back_label|default:'Kembali' }}
+    </a>
+  </div>
+  {% endif %}
+</div>

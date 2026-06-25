@@ -1,0 +1,97 @@
+<!-- Preloader Component - Reusable -->
+<!-- Usage: include 'includes/preloader.html' with duration=3000 -->
+<!-- Default duration: 3000ms (3 seconds) -->
+
+{% load static %}
+
+<div id="preloader">
+    <div class="preloader-content">
+        <!-- Heartbeat EKG Animation -->
+        <div class="heartbeat-container">
+            <svg class="heartbeat-line" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+                <polyline 
+                    class="heartbeat-path"
+                    fill="none" 
+                    stroke="currentColor" 
+                    stroke-width="2"
+                    points="0,30 20,30 25,10 30,50 35,20 40,30 200,30"
+                />
+            </svg>
+        </div>
+        <p class="text-xl font-semibold mt-6">Memuat {{ app_name|default:"aplikasi-test" }}...</p>
+    </div>
+</div>
+
+<style>
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease-out;
+}
+
+#preloader.fade-out {
+    opacity: 0;
+}
+
+.preloader-content {
+    text-align: center;
+    color: white;
+}
+
+.heartbeat-container {
+    width: 200px;
+    height: 60px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.heartbeat-line {
+    width: 100%;
+    height: 100%;
+    color: white;
+}
+
+.heartbeat-path {
+    stroke-dasharray: 400;
+    stroke-dashoffset: 400;
+    animation: heartbeat 2s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+    0% {
+        stroke-dashoffset: 400;
+    }
+    50% {
+        stroke-dashoffset: 0;
+    }
+    100% {
+        stroke-dashoffset: -400;
+    }
+}
+</style>
+
+<script>
+// Hide preloader after icons are positioned and animations started
+document.addEventListener('DOMContentLoaded', function() {
+    // Get duration from template variable or use default
+    const preloaderDuration = parseInt('{{ duration|default:3000 }}', 10);
+    
+    setTimeout(function() {
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+            preloader.classList.add('fade-out');
+            setTimeout(function() {
+                preloader.style.display = 'none';
+            }, 500);
+        }
+    }, preloaderDuration);
+});
+</script>

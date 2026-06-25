@@ -1,0 +1,9 @@
+<div{% if col_span %} class="{{ col_span }}"{% endif %}>
+  <div class="text-sm text-gray-500 mb-1">{{ label }}</div>
+  <input
+    type="text"
+    class="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-100 text-gray-700"
+    value="{{ value|default:'-' }}"
+    readonly
+  />
+</div>

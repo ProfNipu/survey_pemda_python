@@ -1,0 +1,67 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}Hapus Function{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Konfirmasi Hapus Function
+    </h2>
+</div>
+
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-2xl mx-auto">
+    <div class="text-center mb-6">
+        <i class="fas fa-bolt text-7xl text-red-500 mb-4 block"></i>
+        <h4 class="text-xl font-semibold text-gray-800">Apakah Anda yakin ingin menghapus function ini?</h4>
+    </div>
+    
+    <div class="bg-amber-50 border-l-4 border-amber-500 p-5 rounded-lg my-5">
+        <strong class="text-amber-800">
+            <i class="fas fa-info-circle mr-2"></i> Informasi Function:
+        </strong>
+        <ul class="mt-3 space-y-2 text-amber-700">
+            <li><span class="font-semibold">Nama:</span> <code class="bg-amber-100 px-2 py-0.5 rounded">{{ function.nama_fungsi }}</code></li>
+            <li><span class="font-semibold">Label:</span> {{ function.label_fungsi }}</li>
+            <li><span class="font-semibold">Deskripsi:</span> {{ function.deskripsi_fungsi|default:"(tidak ada)" }}</li>
+        </ul>
+    </div>
+    
+    {% if rule_count > 0 %}
+    <div class="bg-red-50 border-l-4 border-red-500 p-5 rounded-lg my-5">
+        <strong class="text-red-800">
+            <i class="fas fa-exclamation-triangle mr-2"></i> Peringatan!
+        </strong>
+        <p class="mb-2 mt-2 text-red-700">Function ini digunakan oleh <strong>{{ rule_count }} rules</strong>. Menghapus function akan menghapus semua rules terkait!</p>
+        
+        <details class="mt-3">
+            <summary class="cursor-pointer text-red-600 font-medium hover:text-red-700">
+                <i class="fas fa-list mr-1"></i> Lihat Rules yang Terpengaruh ({{ affected_rules.count }})
+            </summary>
+            <ul class="mt-3 space-y-1 text-red-700 ml-4">
+                {% for rule in affected_rules %}
+                <li>{{ rule }}</li>
+                {% endfor %}
+            </ul>
+        </details>
+    </div>
+    {% else %}
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4 my-5">
+        <i class="fas fa-check-circle text-green-600 mr-2"></i>
+        <span class="text-green-700">Function ini tidak digunakan oleh rule apapun. Aman untuk dihapus.</span>
+    </div>
+    {% endif %}
+    
+    <form method="post" class="mt-6" novalidate>
+        {% csrf_token %}
+        <div class="flex gap-3">
+            <button type="submit" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                <i class="fas fa-trash mr-2"></i> Ya, Hapus Function
+            </button>
+            <a href="{% url 'manajemen_aplikasi:function_list' %}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-colors text-center">
+                <i class="fas fa-times mr-2"></i> Batal
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

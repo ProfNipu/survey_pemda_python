@@ -1,0 +1,64 @@
+{% load render_table from django_tables2 %}
+
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <!-- Table Header -->
+    <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">
+                Data Responden Survey
+                <span class="text-sm font-normal text-gray-500 ml-2">({{ total }} total)</span>
+            </h3>
+            <div class="flex items-center space-x-2 text-sm text-gray-500">
+                <i class="fas fa-table"></i>
+                <span>{{ table.paginated_rows.start_index }}-{{ table.paginated_rows.end_index }} dari {{ total }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        {% render_table table %}
+    </div>
+
+    <!-- Pagination -->
+    {% if table.page %}
+    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Menampilkan {{ table.paginated_rows.start_index }} sampai {{ table.paginated_rows.end_index }} 
+                dari {{ total }} entri
+            </div>
+            
+            {% if table.page.has_other_pages %}
+            <nav class="flex items-center space-x-2">
+                {% if table.page.has_previous %}
+                    <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                    <a href="?page={{ table.page.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                {% endif %}
+                
+                <span class="px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md">
+                    {{ table.page.number }} dari {{ table.page.paginator.num_pages }}
+                </span>
+                
+                {% if table.page.has_next %}
+                    <a href="?page={{ table.page.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a href="?page={{ table.page.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                {% endif %}
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>

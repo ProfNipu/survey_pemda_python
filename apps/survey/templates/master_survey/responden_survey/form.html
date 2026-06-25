@@ -1,0 +1,170 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    {% if edit_mode %}Edit Responden Survey{% else %}Tambah Responden Survey{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-6">
+    <!-- Header -->
+    {% include 'includes/crud_form_header.html' with title='Responden Survey' edit_mode=edit_mode icon='fas fa-users' back_url='survey:responden_survey_list' %}
+
+    <!-- Form -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <form method="post" 
+              hx-post="{% if edit_mode %}{% url 'survey:responden_survey_edit' obj.id %}{% else %}{% url 'survey:responden_survey_create' %}{% endif %}"
+              hx-target="this"
+              hx-swap="outerHTML"
+              class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- ID Pegawai Penilai -->
+                <div>
+                    <label for="{{ form.id_pegawaiPenilai.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.id_pegawaiPenilai.label }}
+                    </label>
+                    {{ form.id_pegawaiPenilai }}
+                    {% if form.id_pegawaiPenilai.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.id_pegawaiPenilai.help_text }}</p>
+                    {% endif %}
+                    {% if form.id_pegawaiPenilai.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.id_pegawaiPenilai.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- NIP Pegawai Penilai -->
+                <div>
+                    <label for="{{ form.nip_pegawaiPenilai.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.nip_pegawaiPenilai.label }}
+                    </label>
+                    {{ form.nip_pegawaiPenilai }}
+                    {% if form.nip_pegawaiPenilai.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.nip_pegawaiPenilai.help_text }}</p>
+                    {% endif %}
+                    {% if form.nip_pegawaiPenilai.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.nip_pegawaiPenilai.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- ID Pegawai Dinilai -->
+                <div>
+                    <label for="{{ form.id_pegawaiDinilai.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.id_pegawaiDinilai.label }}
+                    </label>
+                    {{ form.id_pegawaiDinilai }}
+                    {% if form.id_pegawaiDinilai.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.id_pegawaiDinilai.help_text }}</p>
+                    {% endif %}
+                    {% if form.id_pegawaiDinilai.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.id_pegawaiDinilai.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- NIP Pegawai Dinilai -->
+                <div>
+                    <label for="{{ form.nip_pegawaiDinilai.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.nip_pegawaiDinilai.label }}
+                    </label>
+                    {{ form.nip_pegawaiDinilai }}
+                    {% if form.nip_pegawaiDinilai.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.nip_pegawaiDinilai.help_text }}</p>
+                    {% endif %}
+                    {% if form.nip_pegawaiDinilai.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.nip_pegawaiDinilai.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Peran Penilai -->
+                <div>
+                    <label for="{{ form.peranPenilai.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.peranPenilai.label }}
+                    </label>
+                    {{ form.peranPenilai }}
+                    {% if form.peranPenilai.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.peranPenilai.help_text }}</p>
+                    {% endif %}
+                    {% if form.peranPenilai.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.peranPenilai.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Status Data -->
+                <div>
+                    <label for="{{ form.statusData.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.statusData.label }}
+                    </label>
+                    {{ form.statusData }}
+                    {% if form.statusData.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.statusData.help_text }}</p>
+                    {% endif %}
+                    {% if form.statusData.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.statusData.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            {% include 'includes/crud_form_actions.html' with edit_mode=edit_mode back_url='survey:responden_survey_list' %}
+        </form>
+    </div>
+
+    <!-- Example Box -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+        <div class="flex items-start space-x-3">
+            <i class="fas fa-lightbulb text-blue-500 mt-0.5"></i>
+            <div class="text-sm text-blue-700">
+                <p class="font-medium mb-2">Contoh Pengisian:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-600">
+                    <div>
+                        <p><strong>ID Pegawai Penilai:</strong> 12345</p>
+                        <p><strong>NIP Penilai:</strong> 198501012010011001</p>
+                        <p><strong>Peran Penilai:</strong> Atasan</p>
+                    </div>
+                    <div>
+                        <p><strong>ID Pegawai Dinilai:</strong> 67890</p>
+                        <p><strong>NIP Dinilai:</strong> 199002152015021002</p>
+                        <p><strong>Status:</strong> Draft</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Bind form with SweetAlert
+    bindFormSwal({
+        successEvent: 'responden-survey-form-success',
+        invalidEvent: 'responden-survey-form-invalid',
+        entityName: 'Responden Survey'
+    });
+});
+</script>
+{% endblock %}

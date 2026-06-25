@@ -1,0 +1,261 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}{% if edit_mode %}Edit{% else %}Tambah{% endif %} Rule{% endblock %}
+
+{% block content %}
+{% url 'manajemen_aplikasi:rule_list' as back_url %}
+{% include 'includes/crud_form_header.html' with icon_class='fas fa-gavel' title=edit_mode|yesno:'Edit Rule,Tambah Rule' subtitle=edit_mode|yesno:'Update permission rule baru,Buat permission rule baru' back_url=back_url %}
+<div id="rule-form-container">
+<div class="bg-white rounded-xl p-8 shadow-lg max-w-3xl mx-auto">
+    <form method="post" id="ruleForm" novalidate hx-post="{{ request.path }}" hx-trigger="submit" hx-target="#rule-form-container" hx-select="#rule-form-container" hx-swap="outerHTML">
+        {% csrf_token %}
+        {% if errors_list and not messages %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6" data-inline-errors-box>
+            <div class="text-red-700 font-medium mb-2">
+                <i class="fas fa-exclamation-circle mr-1"></i> Periksa kembali input Anda.
+            </div>
+            <ul class="list-disc list-inside text-red-700">
+                {% for e in errors_list %}
+                    <li>{{ e }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {% if not edit_mode %}
+        <div class="mb-6">
+            <label for="module" class="block font-medium text-gray-700 mb-2">
+                Module <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(Pilih module sidebar)</span>
+            </label>
+            <select 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 js-select-search focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="module" 
+                name="module" 
+                onchange="updatePreview()"
+                data-select-search="on"
+                data-search-threshold="1"
+                data-search-placeholder="Cari module..."
+            >
+                <option value="">-- Pilih Module --</option>
+                {% for module in modules %}
+                <option value="{{ module.id }}" data-name="{{ module.nama_module }}" {% if selected_module and selected_module.id == module.id %}selected{% endif %}>
+                    {{ module.label_module }} ({{ module.nama_module }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="mb-6">
+            <label for="control" class="block font-medium text-gray-700 mb-2">
+                Control <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(Pilih resource/control)</span>
+            </label>
+            <select 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 js-select-search focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="control" 
+                name="control" 
+                onchange="updatePreview()"
+                data-select-search="on"
+                data-search-threshold="1"
+                data-search-placeholder="Cari control..."
+                data-search-url="{% url 'manajemen_aplikasi:rules_controls_search' %}"
+                data-initial-fetch="1"
+                data-page-size="200"
+            >
+                <option value="">-- Pilih Control --</option>
+                {% if selected_control %}
+                <option value="{{ selected_control.id }}" selected data-name="{{ selected_control.nama_kontrol }}">
+                    {{ selected_control.label_kontrol }} ({{ selected_control.nama_kontrol }})
+                </option>
+                {% endif %}
+            </select>
+        </div>
+        
+        <div class="mb-6">
+            <label for="function" class="block font-medium text-gray-700 mb-2">
+                Function <span class="text-red-500">*</span>
+                <span class="text-sm text-gray-500 font-normal">(Pilih action/function)</span>
+            </label>
+            <select 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 js-select-search focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="function" 
+                name="function" 
+                onchange="updatePreview()"
+                data-select-search="on"
+                data-search-threshold="1"
+                data-search-placeholder="Cari function..."
+                data-search-url="{% url 'manajemen_aplikasi:rules_functions_search' %}"
+                data-initial-fetch="1"
+                data-page-size="200"
+            >
+                <option value="">-- Pilih Function --</option>
+                {% if selected_function %}
+                <option value="{{ selected_function.id }}" selected data-name="{{ selected_function.nama_fungsi }}">
+                    {{ selected_function.label_fungsi }} ({{ selected_function.nama_fungsi }})
+                </option>
+                {% endif %}
+            </select>
+        </div>
+        
+        <div id="previewBox" class="bg-gray-50 rounded-lg p-5 mt-5 border-2 border-dashed border-gray-300" style="display: none;">
+            <h5 class="text-gray-700 font-semibold mb-3"><i class="fas fa-eye mr-2"></i> Preview Permission String:</h5>
+            <code id="permissionPreview" class="text-base bg-primary text-white px-5 py-2 rounded-lg inline-block">module.control.function</code>
+        </div>
+        {% else %}
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <strong class="text-blue-800"><i class="fas fa-info-circle mr-2"></i> Rule Information:</strong>
+            <ul class="mt-2 mb-0 space-y-1 text-blue-700">
+                <li><span class="font-semibold">Module:</span> {{ rule.module.label_module }}</li>
+                <li><span class="font-semibold">Control:</span> {{ rule.control.label_kontrol }}</li>
+                <li><span class="font-semibold">Function:</span> {{ rule.function.label_fungsi }}</li>
+                <li><span class="font-semibold">Permission String:</span> <code class="bg-blue-100 px-2 py-0.5 rounded">{{ rule.permission_string }}</code></li>
+            </ul>
+        </div>
+        <p class="text-gray-500 text-sm mb-4">Anda dapat mengubah Module, Control, dan Function.</p>
+
+        <div class="mb-6">
+            <label for="module" class="block font-medium text-gray-700 mb-2">
+                Module <span class="text-red-500">*</span>
+            </label>
+            <select 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 js-select-search focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="module" 
+                name="module"
+                data-select-search="on"
+                data-search-threshold="1"
+                data-search-placeholder="Cari module..."
+            >
+                {% for module in modules %}
+                <option value="{{ module.id }}" data-name="{{ module.nama_module }}" {% if rule.module.id == module.id %}selected{% endif %}>
+                    {{ module.label_module }} ({{ module.nama_module }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-6">
+            <label for="control" class="block font-medium text-gray-700 mb-2">
+                Control <span class="text-red-500">*</span>
+            </label>
+            <select 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 js-select-search focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="control" 
+                name="control"
+                data-select-search="on"
+                data-search-threshold="1"
+                data-search-placeholder="Cari control..."
+                data-search-url="{% url 'manajemen_aplikasi:rules_controls_search' %}"
+                data-initial-fetch="1"
+                data-page-size="200"
+            >
+                <option value="{{ rule.control.id }}" selected data-name="{{ rule.control.nama_kontrol }}">
+                    {{ rule.control.label_kontrol }} ({{ rule.control.nama_kontrol }})
+                </option>
+            </select>
+        </div>
+
+        <div class="mb-6">
+            <label for="function" class="block font-medium text-gray-700 mb-2">
+                Function <span class="text-red-500">*</span>
+            </label>
+            <select 
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 js-select-search focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition-all" 
+                id="function" 
+                name="function"
+                data-select-search="on"
+                data-search-threshold="1"
+                data-search-placeholder="Cari function..."
+                data-search-url="{% url 'manajemen_aplikasi:rules_functions_search' %}"
+                data-initial-fetch="1"
+                data-page-size="200"
+            >
+                <option value="{{ rule.function.id }}" selected data-name="{{ rule.function.nama_fungsi }}">
+                    {{ rule.function.label_fungsi }} ({{ rule.function.nama_fungsi }})
+                </option>
+            </select>
+        </div>
+        {% endif %}
+        
+        <div class="flex items-center mb-6 mt-5">
+            <input 
+                type="checkbox" 
+                class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2" 
+                id="is_active" 
+                name="is_active"
+                {% if edit_mode %}{% if rule.is_active %}checked{% endif %}{% else %}{% if is_active_value %}checked{% endif %}{% endif %}
+            >
+            <label class="ml-2 text-gray-700" for="is_active">
+                Rule Active (bisa digunakan)
+            </label>
+        </div>
+        
+        {% url 'manajemen_aplikasi:rule_list' as cancel_url %}
+        {% include 'includes/crud_form_actions.html' with submit_label=edit_mode|yesno:'Update Rule,Simpan Rule' cancel_url=cancel_url cancel_label='Batal' %}
+    </form>
+</div>
+<script>
+(function(){
+  bindFormSwal('#rule-form-container', {
+    successEvent: 'rule-form-success',
+    invalidEvent: 'rule-form-invalid',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    confirmButtonText: 'OK',
+    scrollToTop: true,
+    dedupeInvalid: false
+  });
+  try { if (window.initSearchableSelect) { window.initSearchableSelect(document.getElementById('rule-form-container')); } } catch(_) {}
+  try {
+    document.addEventListener('htmx:afterSwap', function(e){
+      if (e && e.target && e.target.id === 'rule-form-container') {
+        if (window.initSearchableSelect) { window.initSearchableSelect(e.target); }
+      }
+    });
+  } catch(_) {}
+})();
+</script>
+</div>
+
+<div class="mt-5 max-w-3xl mx-auto">
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <strong class="text-amber-800">
+            <i class="fas fa-lightbulb mr-2"></i> Contoh Rules:
+        </strong>
+        <ul class="mt-2 mb-0 space-y-1 text-amber-700 text-sm list-disc list-inside">
+            <li><code class="bg-amber-100 px-2 py-0.5 rounded">pegawai.ms_pegawai.view</code> - User bisa melihat data pegawai</li>
+            <li><code class="bg-amber-100 px-2 py-0.5 rounded">pegawai.ms_pegawai.create</code> - User bisa menambah pegawai</li>
+            <li><code class="bg-amber-100 px-2 py-0.5 rounded">siasn.siasn_dashboard.view</code> - User bisa lihat SIASN dashboard</li>
+            <li><code class="bg-amber-100 px-2 py-0.5 rounded">laporan.laporan_pegawai.export</code> - User bisa export laporan</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+function updatePreview() {
+    const moduleSelect = document.getElementById('module');
+    const controlSelect = document.getElementById('control');
+    const functionSelect = document.getElementById('function');
+    const previewBox = document.getElementById('previewBox');
+    const previewText = document.getElementById('permissionPreview');
+    
+    const moduleOption = moduleSelect.options[moduleSelect.selectedIndex];
+    const controlOption = controlSelect.options[controlSelect.selectedIndex];
+    const functionOption = functionSelect.options[functionSelect.selectedIndex];
+    
+    if (moduleOption && controlOption && functionOption && 
+        moduleSelect.value && controlSelect.value && functionSelect.value) {
+        
+        const moduleName = moduleOption.getAttribute('data-name');
+        const controlName = controlOption.getAttribute('data-name');
+        const functionName = functionOption.getAttribute('data-name');
+        
+        previewText.textContent = `${moduleName}.${controlName}.${functionName}`;
+        previewBox.style.display = 'block';
+    } else {
+        previewBox.style.display = 'none';
+    }
+}
+</script>
+
+{% endblock %}

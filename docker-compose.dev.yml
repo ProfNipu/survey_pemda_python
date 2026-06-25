@@ -1,0 +1,22 @@
+# Development Docker Compose Override
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  aplikasi_test:
+    # Override command for development
+    command: python manage.py runserver 0.0.0.0:8000
+    
+    environment:
+      # Development specific environment
+      - DEBUG=1
+      - DJANGO_ENV=development
+    
+    # Remove resource limits for development
+    deploy: {}
+    
+    # Enable code reload
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - logs_volume:/app/logs

@@ -1,0 +1,659 @@
+{% load django_tables2 %}
+
+{# Per-Page Selector with Column Visibility - Responsive #}
+<div class="mb-3 space-y-3">
+    {# Show X entries - Full width on mobile #}
+    <div class="flex items-center gap-2">
+        <label for="perPageSelect" class="text-sm text-gray-700">Show</label>
+        <select 
+            id="perPageSelect" 
+            onchange="changePerPage(this.value)"
+            class="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+        >
+            <option value="10" {% if table.paginator.per_page == 10 %}selected{% endif %}>10</option>
+            <option value="25" {% if table.paginator.per_page == 25 %}selected{% endif %}>25</option>
+            <option value="50" {% if table.paginator.per_page == 50 %}selected{% endif %}>50</option>
+            <option value="100" {% if table.paginator.per_page == 100 %}selected{% endif %}>100</option>
+        </select>
+        <span class="text-sm text-gray-700">entries</span>
+    </div>
+    
+    {# Action Buttons - Responsive Grid #}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        <button onclick="toggleColumnVisibility()" class="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-md transition-colors shadow-sm">
+            <i class="fas fa-columns mr-2"></i>Column visibility
+        </button>
+        
+        <button onclick="downloadAllExcel()" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors shadow-sm">
+            <i class="fas fa-file-excel mr-2"></i>Download Excel
+        </button>
+        
+        <button onclick="downloadAllPDF()" class="w-full px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-sm font-medium rounded-md transition-colors shadow-sm">
+            <i class="fas fa-file-pdf mr-2"></i>Download PDF
+        </button>
+    </div>
+</div>
+
+<script>
+// Prevent re-declaration on HTMX swap - only define once
+if (typeof EXCEL_TIME_PER_RECORD_SECONDS === 'undefined') {
+    // Processing time per record (in seconds)
+    // Excel: 0.00175 detik per record
+    // PDF: 0.000415 detik per record
+    window.EXCEL_TIME_PER_RECORD_SECONDS = 0.000175;
+    window.PDF_TIME_PER_RECORD_SECONDS = 0.00115;
+}
+
+// Get total record count from page (data yang tampil setelah filter)
+function getTotalRecords() {
+    const marker = document.getElementById('dt-total-records');
+    if (marker) {
+        const attr = marker.getAttribute('data-total');
+        if (attr) {
+            const num = parseInt(attr, 10);
+            if (!isNaN(num)) return num;
+        }
+        const txt = (marker.textContent || '').trim();
+        const num2 = parseInt(txt, 10);
+        if (!isNaN(num2)) return num2;
+    }
+    const totalText = document.querySelector('body').innerText;
+    const userMatch = totalText.match(/Total Users:\s*(\d+)/);
+    const roleMatch = totalText.match(/Total Roles:\s*(\d+)/);
+    const functionMatch = totalText.match(/Total Functions:\s*(\d+)/);
+    const moduleMatch = totalText.match(/Total Modules:\s*(\d+)/);
+    if (userMatch) return parseInt(userMatch[1]);
+    if (roleMatch) return parseInt(roleMatch[1]);
+    if (functionMatch) return parseInt(functionMatch[1]);
+    if (moduleMatch) return parseInt(moduleMatch[1]);
+    return 100;
+}
+
+// Calculate processing time based on filtered record count
+function calculateProcessingTime(format) {
+    const totalRecords = getTotalRecords();
+    
+    // Select time per record based on format
+    const timePerRecord = format === 'pdf' ? window.PDF_TIME_PER_RECORD_SECONDS : window.EXCEL_TIME_PER_RECORD_SECONDS;
+    
+    // Calculate time: data yang tampil * time per record
+    let processingTime = Math.ceil(totalRecords * timePerRecord * 1000); // Convert to ms
+    
+    // Maximum 30 detik (no minimum, start from actual calculation)
+    processingTime = Math.min(processingTime, 30000);
+    
+    return {
+        time: processingTime,
+        records: totalRecords,
+        seconds: (processingTime / 1000).toFixed(2)
+    };
+}
+
+// Download ALL data from database (not just current page)
+function downloadAllExcel() {
+    // Check if SweetAlert2 is available
+    if (typeof Swal === 'undefined') {
+        alert('Downloading Excel file...');
+        triggerDownload('excel');
+        return;
+    }
+    
+    // Calculate processing time
+    const processInfo = calculateProcessingTime('excel');
+    
+    // Show loading alert with progress bar
+    Swal.fire({
+        title: 'Memproses Download Excel',
+        html: `
+            <div style="margin: 20px 0;">
+                <p style="margin-bottom: 10px;"><b>${processInfo.records} records</b></p>
+                <p style="margin-bottom: 15px;">Estimasi: ~${processInfo.seconds} detik</p>
+                <div style="width: 100%; background-color: #e0e0e0; border-radius: 10px; height: 25px; overflow: hidden;">
+                    <div id="progressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #4CAF50, #45a049); transition: width 0.1s; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+    });
+    
+    // Update progress bar
+    let progress = 0;
+    const intervalTime = 100; // Update every 100ms
+    const totalSteps = processInfo.time / intervalTime;
+    const progressInterval = setInterval(() => {
+        progress += (100 / totalSteps);
+        if (progress >= 100) {
+            progress = 100;
+            clearInterval(progressInterval);
+        }
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        if (progressBar) progressBar.style.width = progress + '%';
+        if (progressText) progressText.textContent = Math.round(progress) + '%';
+    }, intervalTime);
+    
+    // Trigger download
+    triggerDownload('excel');
+    
+    // Close loading and show success after calculated time
+    setTimeout(() => {
+        clearInterval(progressInterval);
+        Swal.fire({
+            title: 'Berhasil!',
+            text: `File Excel berhasil didownload (${processInfo.records} records)`,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3085d6'
+        });
+    }, processInfo.time);
+}
+
+function downloadAllPDF() {
+    // Check if SweetAlert2 is available
+    if (typeof Swal === 'undefined') {
+        alert('Downloading PDF file...');
+        triggerDownload('pdf');
+        return;
+    }
+    
+    // Calculate processing time
+    const processInfo = calculateProcessingTime('pdf');
+    
+    // Show loading alert with progress bar
+    Swal.fire({
+        title: 'Memproses Download PDF',
+        html: `
+            <div style="margin: 20px 0;">
+                <p style="margin-bottom: 10px;"><b>${processInfo.records} records</b></p>
+                <p style="margin-bottom: 15px;">Estimasi: ~${processInfo.seconds} detik</p>
+                <div style="width: 100%; background-color: #e0e0e0; border-radius: 10px; height: 25px; overflow: hidden;">
+                    <div id="progressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #f44336, #d32f2f); transition: width 0.1s; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+    });
+    
+    // Update progress bar
+    let progress = 0;
+    const intervalTime = 100; // Update every 100ms
+    const totalSteps = processInfo.time / intervalTime;
+    const progressInterval = setInterval(() => {
+        progress += (100 / totalSteps);
+        if (progress >= 100) {
+            progress = 100;
+            clearInterval(progressInterval);
+        }
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        if (progressBar) progressBar.style.width = progress + '%';
+        if (progressText) progressText.textContent = Math.round(progress) + '%';
+    }, intervalTime);
+    
+    // Trigger download
+    triggerDownload('pdf');
+    
+    // Close loading and show success after calculated time
+    setTimeout(() => {
+        clearInterval(progressInterval);
+        Swal.fire({
+            title: 'Berhasil!',
+            text: `File PDF berhasil didownload (${processInfo.records} records)`,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3085d6'
+        });
+    }, processInfo.time);
+}
+
+// Helper function to trigger download
+function triggerDownload(format) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = window.location.pathname;  // Use pathname only, params handled below
+    // Use hidden iframe target to avoid popup blockers and page refresh
+    try {
+        let ifr = document.getElementById('download_iframe');
+        if (!ifr) {
+            ifr = document.createElement('iframe');
+            ifr.style.display = 'none';
+            ifr.id = 'download_iframe';
+            ifr.name = 'download_iframe';
+            document.body.appendChild(ifr);
+        }
+        form.target = 'download_iframe';
+    } catch(e) {}
+    
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    let cookieToken = null;
+    try {
+        const m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+        if (m) cookieToken = decodeURIComponent(m[1]);
+    } catch(e) {}
+    csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]')?.value || metaToken || cookieToken || '{{ csrf_token }}';
+    form.appendChild(csrfInput);
+    
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'export_all';
+    actionInput.value = format;
+    form.appendChild(actionInput);
+    
+    // Get search value directly from search input field
+    const searchInputField = document.querySelector('input[name="search"]');
+    if (searchInputField && searchInputField.value.trim()) {
+        const searchInput = document.createElement('input');
+        searchInput.type = 'hidden';
+        searchInput.name = 'search';
+        searchInput.value = searchInputField.value.trim();
+        form.appendChild(searchInput);
+        console.log('[DOWNLOAD] Sending search:', searchInputField.value.trim());
+    } else {
+        console.log('[DOWNLOAD] No search value');
+    }
+    
+    // Get module filter value (if present)
+    const moduleSelect = document.getElementById('module');
+    if (moduleSelect && moduleSelect.value) {
+        const moduleInput = document.createElement('input');
+        moduleInput.type = 'hidden';
+        moduleInput.name = 'module';
+        moduleInput.value = moduleSelect.value;
+        form.appendChild(moduleInput);
+        console.log('[DOWNLOAD] Sending module:', moduleSelect.value);
+    }
+
+    // Get status filter value
+    const statusSelect = document.querySelector('select[name="status"]');
+    if (statusSelect && statusSelect.value) {
+        const statusInput = document.createElement('input');
+        statusInput.type = 'hidden';
+        statusInput.name = 'status';
+        statusInput.value = statusSelect.value;
+        form.appendChild(statusInput);
+        console.log('[DOWNLOAD] Sending status:', statusSelect.value);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+</script>
+
+<script>
+function changePerPage(perPage) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', perPage);
+    url.searchParams.set('page', '1'); // Reset to page 1
+    
+    // Use HTMX if available, otherwise regular navigation
+    if (typeof htmx !== 'undefined') {
+        htmx.ajax('GET', url.toString(), {
+            target: '#table-content',
+            swap: 'outerHTML',
+            indicator: '#table-loading-overlay'
+        });
+    } else {
+        window.location.href = url.toString();
+    }
+}
+</script>
+
+<div id="dt2-tailwind-wrapper" class="overflow-x-auto">
+    <div class="w-full min-w-[1100px]">
+        <table {{ table.attrs.as_html }}>
+        <thead {{ table.attrs.thead.as_html }}>
+            <tr>
+            {% for column in table.columns %}
+                <th {{ column.attrs.th.as_html }}>
+                    {% if column.orderable %}
+                        <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}" hx-get="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}" hx-target="#table-content" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay" class="group inline-flex items-center gap-2 hover:text-gray-700">
+                            {{ column.header }}
+                            {% if column.is_ordered %}
+                                {% if column.order_by_alias.is_descending %}
+                                    <i class="fas fa-sort-down text-blue-600"></i>
+                                {% else %}
+                                    <i class="fas fa-sort-up text-blue-600"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="fas fa-sort text-gray-300 group-hover:text-gray-400"></i>
+                            {% endif %}
+                        </a>
+                    {% else %}
+                        {{ column.header }}
+                    {% endif %}
+                </th>
+            {% endfor %}
+            </tr>
+        </thead>
+        <tbody {{ table.attrs.tbody.as_html }}>
+            {% for row in table.paginated_rows %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                {% for column, cell in row.items %}
+                    <td {{ column.attrs.td.as_html }}>{{ cell }}</td>
+                {% endfor %}
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="{{ table.columns|length }}" class="px-4 py-8 text-center text-gray-500">
+                        <i class="fas fa-inbox text-4xl mb-2 text-gray-300"></i>
+                        <p class="text-sm">No users found</p>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot class="bg-gray-50">
+            <tr>
+            {% for column in table.columns %}
+                <th {{ column.attrs.th.as_html }}>
+                    {% if column.name == 'selection' %}
+                        <input type="checkbox" id="select-all-bottom" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                    {% else %}
+                        {{ column.header }}
+                    {% endif %}
+                </th>
+            {% endfor %}
+            </tr>
+        </tfoot>
+        </table>
+    </div>
+</div>
+
+{% if table.page %}
+<div class="px-2 sm:px-4 py-3 mt-4 border-t border-gray-200">
+    {# Info Text #}
+    <div class="text-xs sm:text-sm text-gray-700 text-center mb-3">
+        <span class="hidden sm:inline">Menampilkan </span>
+        <span class="font-medium">{{ table.page.start_index }}</span>
+        <span class="hidden sm:inline"> sampai </span>
+        <span class="sm:hidden">-</span>
+        <span class="font-medium">{{ table.page.end_index }}</span>
+        <span class="hidden sm:inline"> dari </span>
+        <span class="sm:hidden">/</span>
+        <span class="font-medium">{{ table.paginator.count }}</span>
+        <span class="hidden sm:inline"> hasil</span>
+    </div>
+    
+    {# Pagination Controls #}
+    <div class="flex justify-center overflow-x-auto" style="display:flex;justify-content:center;overflow-x:auto;">
+            <nav class="flex items-center gap-1 sm:gap-2" aria-label="Pagination" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                {% if table.page.has_previous %}
+                    <a href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}" hx-get="{% querystring table.prefixed_page_field=table.page.previous_page_number %}" hx-target="#table-content" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
+                       class="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50" style="display:inline-flex;align-items:center;">
+                        <i class="fas fa-chevron-left"></i>
+                        <span class="hidden sm:inline">Sebelumnya</span>
+                    </a>
+                {% else %}
+                    <span class="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-md border border-gray-300 bg-gray-100 text-xs sm:text-sm font-medium text-gray-400 cursor-not-allowed" style="display:inline-flex;align-items:center;">
+                        <i class="fas fa-chevron-left"></i>
+                        <span class="hidden sm:inline">Sebelumnya</span>
+                    </span>
+                {% endif %}
+                
+                {% for page_num in table.page.paginator.page_range %}
+                    {% if page_num == table.page.number %}
+                        <span class="inline-flex items-center px-2 sm:px-4 py-1.5 sm:py-2 rounded-md border-2 border-blue-500 bg-blue-50 text-xs sm:text-sm font-medium text-blue-600" style="display:inline-flex;align-items:center;">
+                            {{ page_num }}
+                        </span>
+                    {% elif page_num > table.page.number|add:'-2' and page_num < table.page.number|add:'2' %}
+                        <a href="{% querystring table.prefixed_page_field=page_num %}" hx-get="{% querystring table.prefixed_page_field=page_num %}" hx-target="#table-content" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
+                           class="inline-flex items-center px-2 sm:px-4 py-1.5 sm:py-2 rounded-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300" style="display:inline-flex;align-items:center;">
+                            {{ page_num }}
+                        </a>
+                    {% elif page_num == 1 or page_num == table.page.paginator.num_pages %}
+                        <a href="{% querystring table.prefixed_page_field=page_num %}" hx-get="{% querystring table.prefixed_page_field=page_num %}" hx-target="#table-content" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
+                           class="hidden sm:inline-flex items-center px-2 sm:px-4 py-1.5 sm:py-2 rounded-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300" style="display:inline-flex;align-items:center;">
+                            {{ page_num }}
+                        </a>
+                    {% elif page_num == table.page.number|add:'-2' or page_num == table.page.number|add:'2' %}
+                        <span class="hidden sm:inline-flex items-center px-2 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-500" style="display:inline-flex;align-items:center;">
+                            ...
+                        </span>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if table.page.has_next %}
+                    <a href="{% querystring table.prefixed_page_field=table.page.next_page_number %}" hx-get="{% querystring table.prefixed_page_field=table.page.next_page_number %}" hx-target="#table-content" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
+                       class="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50" style="display:inline-flex;align-items:center;">
+                        <span class="hidden sm:inline">Selanjutnya</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <span class="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-md border border-gray-300 bg-gray-100 text-xs sm:text-sm font-medium text-gray-400 cursor-not-allowed" style="display:inline-flex;align-items:center;">
+                        <span class="hidden sm:inline">Selanjutnya</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </span>
+                {% endif %}
+            </nav>
+        </div>
+        
+        {# Jump to Page Input #}
+        <div class="flex justify-center items-center gap-2 mt-3 pt-3 border-t border-gray-200">
+            <label for="jumpToPage" class="text-xs sm:text-sm text-gray-600">
+                <span class="hidden sm:inline">Loncat ke halaman:</span>
+                <span class="sm:hidden">Hal:</span>
+            </label>
+            <input 
+                type="number" 
+                id="jumpToPage" 
+                min="1" 
+                max="{{ table.paginator.num_pages }}" 
+                placeholder="{{ table.page.number }}"
+                class="w-16 sm:w-20 px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+            >
+            <button 
+                onclick="jumpToPage({{ table.paginator.num_pages }})"
+                class="px-3 py-1 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+                <span class="hidden sm:inline">Pergi</span>
+                <span class="sm:inline-block hidden">→</span>
+                <i class="fas fa-arrow-right sm:hidden"></i>
+            </button>
+            <span class="text-xs text-gray-500">
+                <span class="hidden sm:inline">dari {{ table.paginator.num_pages }}</span>
+                <span class="sm:hidden">/{{ table.paginator.num_pages }}</span>
+            </span>
+        </div>
+    </div>
+</div>
+
+<script>
+function jumpToPage(maxPages) {
+    const input = document.getElementById('jumpToPage');
+    const pageNum = parseInt(input.value);
+    
+    // Validation
+    if (!pageNum || pageNum < 1 || pageNum > maxPages) {
+        // Show error with animation
+        input.classList.add('border-red-500', 'animate-shake');
+        setTimeout(() => {
+            input.classList.remove('border-red-500', 'animate-shake');
+        }, 500);
+        return;
+    }
+    
+    // Build URL with page parameter
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', pageNum);
+    
+    // Use HTMX if available, otherwise regular navigation
+    if (typeof htmx !== 'undefined') {
+        htmx.ajax('GET', url.toString(), {
+            target: '#table-content',
+            swap: 'outerHTML',
+            indicator: '#table-loading-overlay'
+        });
+    } else {
+        window.location.href = url.toString();
+    }
+}
+
+// Allow Enter key to submit
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('jumpToPage');
+    if (input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                jumpToPage({{ table.paginator.num_pages }});
+            }
+        });
+    }
+});
+
+// ===== ACTION BUTTONS FUNCTIONS =====
+
+// Copy table to clipboard
+function copyTableToClipboard() {
+    const table = document.querySelector('table');
+    if (!table) return;
+    
+    let text = '';
+    const rows = table.querySelectorAll('tr');
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('th, td');
+        const rowText = Array.from(cells).map(cell => cell.innerText.trim()).join('\t');
+        text += rowText + '\n';
+    });
+    
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Table copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
+}
+
+// Export table data (CSV, Excel, PDF)
+function exportTableData(format) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = window.location.href;
+    
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    form.appendChild(csrfInput);
+    
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'export_format';
+    actionInput.value = format;
+    form.appendChild(actionInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+
+// Print table
+function printTable() {
+    window.print();
+}
+
+// Toggle column visibility
+function toggleColumnVisibility() {
+    const table = document.querySelector('table');
+    if (!table) return;
+    
+    const headers = Array.from(table.querySelectorAll('thead th'));
+    const columnNames = headers.map((th, index) => ({
+        index: index,
+        name: th.innerText.trim() || `Column ${index + 1}`,
+        visible: !th.classList.contains('hidden')
+    }));
+    
+    let html = '<div style="max-height: 400px; overflow-y: auto;">';
+    columnNames.forEach(col => {
+        html += `
+            <label style="display: block; padding: 8px; cursor: pointer; hover:background: #f3f4f6;">
+                <input type="checkbox" ${col.visible ? 'checked' : ''} 
+                       onchange="toggleColumn(${col.index}, this.checked)" 
+                       style="margin-right: 8px;">
+                ${col.name}
+            </label>
+        `;
+    });
+    html += '</div>';
+    
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Column Visibility',
+            html: html,
+            showConfirmButton: true,
+            showCancelButton: false,
+            confirmButtonText: 'Close',
+            width: '400px'
+        });
+    } else {
+        alert('Column visibility feature requires SweetAlert2');
+    }
+}
+
+function toggleColumn(columnIndex, visible) {
+    const table = document.querySelector('table');
+    if (!table) return;
+    
+    // Toggle header
+    const headers = table.querySelectorAll('thead th');
+    if (headers[columnIndex]) {
+        if (visible) {
+            headers[columnIndex].classList.remove('hidden');
+        } else {
+            headers[columnIndex].classList.add('hidden');
+        }
+    }
+    
+    // Toggle cells in all rows
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells[columnIndex]) {
+            if (visible) {
+                cells[columnIndex].classList.remove('hidden');
+            } else {
+                cells[columnIndex].classList.add('hidden');
+            }
+        }
+    });
+    
+    // Toggle footer
+    const footers = table.querySelectorAll('tfoot th');
+    if (footers[columnIndex]) {
+        if (visible) {
+            footers[columnIndex].classList.remove('hidden');
+        } else {
+            footers[columnIndex].classList.add('hidden');
+        }
+    }
+}
+
+// Delete selected function REMOVED to prevent infinite recursion
+// Implementation is in user_list.html as window.deleteSelected()
+// DO NOT re-add this function here!
+</script>
+
+<style>
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+.animate-shake {
+    animation: shake 0.3s ease-in-out;
+}
+</style>
+{% endif %}

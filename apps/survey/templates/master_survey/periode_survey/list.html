@@ -1,0 +1,78 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Manajemen Periode Survey{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl p-6 shadow-lg mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="bg-emerald-100 p-3 rounded-lg">
+                    <i class="fas fa-calendar-alt text-emerald-600 text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Manajemen Periode Survey</h1>
+                    <p class="text-gray-600 mt-1">Kelola periode waktu survey dapat diakses</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'survey:periode_survey_create' %}" 
+                   class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
+                    <i class="fas fa-plus"></i>
+                    <span>Tambah Periode</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    {% include 'includes/datatable_filters.html' with search_placeholder='Cari nama periode, jenis survey...' %}
+
+    <!-- Bulk Actions -->
+    {% include 'includes/datatable_bulk_actions.html' with entity_name='periode survey' show_delete=True show_export=True %}
+
+    <!-- Loading Overlay -->
+    {% include 'includes/datatable_loading.html' %}
+
+    <!-- Table Container -->
+    <div id="table-container">
+        {% include 'includes/datatable_table_scroll.html' %}
+    </div>
+
+    <!-- Info Box -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+        <div class="flex items-start space-x-3">
+            <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+            <div class="text-sm text-blue-700">
+                <p class="font-medium mb-1">Informasi Periode Survey:</p>
+                <ul class="list-disc list-inside space-y-1 text-blue-600">
+                    <li><strong>Belum Mulai:</strong> Survey akan terbuka pada tanggal yang ditentukan</li>
+                    <li><strong>Aktif:</strong> Survey sedang terbuka dan dapat diakses responden</li>
+                    <li><strong>Selesai:</strong> Survey telah ditutup dan tidak dapat diakses</li>
+                    <li><strong>Nonaktif:</strong> Periode dinonaktifkan secara manual</li>
+                    <li>Hanya periode yang aktif dan dalam rentang waktu yang dapat diakses</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize datatable helper
+    const dt = new DatatableHelper({
+        tableId: 'periode_survey_table',
+        pageKey: 'periode_survey_list',
+        saveUrl: window.location.href,
+        deleteUrl: '{% url "survey:periode_survey_list" %}',
+        entity: 'periode_survey',
+        exportFormats: ['csv'],
+        useToast: true,
+        debug: false
+    });
+    dt.init();
+});
+</script>
+{% endblock %}

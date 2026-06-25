@@ -1,0 +1,75 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block page_title %}Jenis Survey{% endblock %}
+
+{% block content %}
+{% has_permission 'survey' 'jenis_survey' 'view' as can_back_dashboard %}
+{% has_permission 'survey' 'jenis_survey' 'create' as can_create %}
+{% has_permission 'survey' 'jenis_survey' 'export' as can_export %}
+{% has_permission 'survey' 'jenis_survey' 'delete' as can_delete %}
+{% has_permission 'survey' 'jenis_survey' 'bulk_delete' as can_bulk_delete %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-tags mr-2"></i> Manajemen Jenis Survey
+        </h2>
+        <p class="text-gray-500">Kelola master jenis survey</p>
+    </div>
+    <div class="flex gap-2">
+        {% if can_create %}
+        <a href="{% url 'survey:jenis_survey_create' %}" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i> Tambah Jenis Survey
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    {% include 'includes/datatable_filters.html' with show_search=True search_placeholder="Cari kode, nama, atau deskripsi..." show_status_filter=False %}
+
+    {% include 'includes/datatable_bulk_actions.html' with show_clear=True show_copy=True show_export=can_export show_print=True show_delete=can_bulk_delete export_formats="csv,excel,pdf" %}
+
+    <div id="table-container">
+        {% include 'master_survey/jenis_survey/partials/_table.html' %}
+    </div>
+</div>
+
+<div class="mt-5">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-info-circle mr-2"></i> Info:
+        </strong>
+        <span class="text-blue-700">
+            Jenis Survey adalah master data untuk tipe-tipe survey yang akan digunakan (contoh: JPT, Survey 360, Kinerja Tahunan).
+        </span>
+    </div>
+</div>
+<script src="{% static 'js/datatable-helpers.js' %}?v=1.2"></script>
+<script>
+(function(){
+  function initJenisSurveyDT(){
+    if (window.jenisSurveyIntegratedDT) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+    window.jenisSurveyIntegratedDT = new DatatableHelper({
+        tableId: 'jenis_survey_table',
+        pageKey: 'jenis_survey_list',
+        saveUrl: '{% url "survey:jenis_survey_list" %}',
+        deleteUrl: '{% url "survey:jenis_survey_list" %}',
+        csrfToken: csrfToken,
+        exportFormats: ['csv','excel','pdf'],
+        entity: 'jenis_survey',
+        useToast: true,
+        debug: true
+    });
+    window.jenisSurveyIntegratedDT.init();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initJenisSurveyDT);
+  } else {
+    initJenisSurveyDT();
+  }
+})();
+</script>
+{% endblock %}

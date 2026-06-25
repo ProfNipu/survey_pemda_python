@@ -1,0 +1,77 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block page_title %}Manajemen Fungsi{% endblock %}
+
+{% block content %}
+{% has_permission 'pengaturan' 'permission_dashboard' 'view' as can_back_dashboard %}
+{% has_permission 'pengaturan' 'permission_function' 'create' as can_create %}
+{% has_permission 'pengaturan' 'permission_function' 'export' as can_export %}
+{% has_permission 'pengaturan' 'permission_function' 'delete' as can_delete %}
+{% has_permission 'pengaturan' 'permission_function' 'bulk_delete' as can_bulk_delete %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-bolt mr-2"></i> Manajemen Fungsi
+        </h2>
+        <p class="text-gray-500">Kelola actions/functions seperti view, create, edit, delete</p>
+    </div>
+    <div class="flex gap-2">
+        {% if can_back_dashboard %}
+        <a href="{% url 'manajemen_aplikasi:dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali
+        </a>
+        {% endif %}
+        {% if can_create %}
+        <a href="{% url 'manajemen_aplikasi:function_create' %}" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i> Tambah Function
+        </a>
+        {% endif %}
+    </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-6 shadow-lg">
+        {# Filters - Reusable #}
+        {% include 'includes/datatable_filters.html' with show_search=True search_placeholder="Cari nama fungsi atau label..." show_status_filter=False %}
+
+        {# Bulk Actions - Reusable #}
+        {% include 'includes/datatable_bulk_actions.html' with show_clear=True show_copy=True show_export=can_export show_print=True show_delete=can_bulk_delete export_formats="csv,excel,pdf" %}
+
+        {# Table Container #}
+        <div id="table-container">
+            {% include 'manajemen_aplikasi/access/ma_ap_functions/partials/_table.html' %}
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <strong class="text-blue-800">
+                <i class="fas fa-info-circle mr-2"></i> Info:
+            </strong>
+            <span class="text-blue-700">
+                Functions adalah actions yang bisa dilakukan user, contoh: view, create, edit, delete, export, import, approve, reject.
+            </span>
+        </div>
+    </div>
+    
+    <script src="{% static 'js/datatable-helpers.js' %}?v=1.2"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.functionsIntegratedDT) return;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        window.functionsIntegratedDT = new DatatableHelper({
+            tableId: 'functions_table',
+            pageKey: 'function_list',
+            saveUrl: '{% url "manajemen_aplikasi:function_list" %}',
+            deleteUrl: '{% url "manajemen_aplikasi:function_list" %}',
+            csrfToken: csrfToken,
+            exportFormats: ['csv','excel','pdf'],
+            entity: 'functions',
+            useToast: true,
+            debug: true
+        });
+        window.functionsIntegratedDT.init();
+    });
+    </script>
+{% endblock %}

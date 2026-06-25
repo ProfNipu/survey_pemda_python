@@ -1,0 +1,138 @@
+{% extends 'base_dashboard.html' %}
+{% load render_table from django_tables2 %}
+{% load static %}
+{% load permission_tags %}
+
+{% block page_title %}Manajemen Role{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* HTMX Loading Indicator - Hidden by default with smooth transition */
+    .htmx-indicator {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease-in-out, visibility 0s linear 0.2s;
+    }
+    
+    /* Show indicator with smooth fade-in when HTMX is making a request */
+    .htmx-request .htmx-indicator,
+    .htmx-request.htmx-indicator {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.2s ease-in-out, visibility 0s linear 0s;
+    }
+    
+    /* Smooth scale animation for loading card */
+    .htmx-request .htmx-indicator > div > div {
+        animation: scaleIn 0.3s ease-out;
+    }
+    
+    @keyframes scaleIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% has_permission 'pengaturan' 'permission_dashboard' 'view' as can_back_dashboard %}
+{% has_permission 'pengaturan' 'permission_role' 'create' as can_create %}
+{% has_permission 'pengaturan' 'permission_role' 'export' as can_export %}
+{% has_permission 'pengaturan' 'permission_role' 'bulk_delete' as can_bulk_delete %}
+{# ===== PAGE HEADER ===== #}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+            <i class="fas fa-user-tag mr-2"></i> Manajemen Role
+        </h2>
+        <p class="text-gray-500">Kelola roles, create, edit, assign permissions dengan sorting & pagination</p>
+    </div>
+    <div class="flex gap-2">
+        {% if can_back_dashboard %}
+        <a href="{% url 'manajemen_aplikasi:dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali
+        </a>
+        {% endif %}
+        {% if can_create %}
+        <a href="{% url 'manajemen_aplikasi:roles_create' %}" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i> Tambah Role
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    {# ===== FILTERS SECTION - REUSABLE ===== #}
+    {% include 'includes/datatable_filters.html' with show_search=True search_placeholder="Cari berdasarkan nama role atau deskripsi..." show_status_filter=False %}
+    
+    {# ===== BULK ACTIONS - REUSABLE ===== #}
+    {% include 'includes/datatable_bulk_actions.html' with show_clear=True show_copy=True show_export=can_export show_print=True show_delete=can_bulk_delete export_formats="csv,excel,pdf" %}
+    
+    {# ===== TABLE CONTAINER ===== #}
+    <div id="table-container">
+        {% include 'manajemen_aplikasi/access/ma_ap_roles/partials/_table.html' %}
+    </div>
+</div>
+
+{# ===== INFO SECTION ===== #}
+<div class="mt-5">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <strong class="text-blue-800">
+            <i class="fas fa-info-circle mr-2"></i> Info:
+        </strong>
+        <span class="text-blue-700">
+            Kelola semua roles di sistem. Anda bisa create, edit, delete roles dan assign permissions.
+        </span>
+    </div>
+</div>
+<script src="{% static 'js/datatable-helpers.js' %}?v=1.2"></script>
+<script>
+// 🚀 Initialize Integrated Reusable Datatable for Roles
+document.addEventListener('DOMContentLoaded', function() {
+    // Prevent duplicate initialization
+    if (window.rolesIntegratedDT) {
+        console.log('[ROLES] Datatable already initialized, skipping');
+        return;
+    }
+    console.log('[ROLES] Initializing integrated reusable datatable...');
+    // Auto-detect CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                     document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+    // Create datatable instance using existing DatatableHelper
+    window.rolesIntegratedDT = new DatatableHelper({
+        tableId: 'roles_table',
+        pageKey: 'role_list',
+        saveUrl: '{% url "manajemen_aplikasi:roles_list" %}',
+        deleteUrl: '{% url "manajemen_aplikasi:roles_list" %}',
+        csrfToken: csrfToken,
+        exportFormats: ['csv', 'excel', 'pdf'],
+        entity: 'roles',
+        useToast: true,
+        debug: true
+    });
+    // Initialize the datatable
+    window.rolesIntegratedDT.init();
+    // Global functions for template compatibility
+    window.exportSelected = function(format) {
+        window.rolesIntegratedDT.exportSelected(format);
+    };
+    window.deleteSelected = function() {
+        window.rolesIntegratedDT.deleteSelected();
+    };
+    window.clearSearch = function() {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.value = '';
+            htmx.trigger(searchInput, 'keyup');
+        }
+    };
+    console.log('[ROLES] Integrated reusable datatable initialization complete! 🚀');
+});
+</script>
+{% endblock %}

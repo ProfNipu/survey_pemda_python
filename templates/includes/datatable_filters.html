@@ -1,0 +1,71 @@
+{% comment %}
+Reusable Datatable Filters Template
+
+Usage:
+{% include 'includes/datatable_filters.html' with 
+    show_search=True
+    search_placeholder="Cari username, email, atau nama..."
+    show_status_filter=True
+    status_options=status_list
+    show_items_per_page=True
+%}
+{% endcomment %}
+
+<div class="dt-filter-row">
+    {% if show_search %}
+    <!-- Search Input -->
+    <div class="flex-1 relative dt-search-input">
+        <i class="fas fa-search dt-search-icon"></i>
+        <input 
+            type="text" 
+            id="search-input"
+            name="search"
+            placeholder="{{ search_placeholder|default:'Cari berdasarkan username, email, atau nama...' }}"
+            value="{{ request.GET.search|default:'' }}"
+            class="w-full px-4 py-3 pl-12 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            hx-get="{{ request.path }}"
+            hx-trigger="keyup changed delay:500ms"
+            hx-target="#table-container"
+            hx-indicator="#table-loading-overlay"
+            hx-include="#module, [name='search'], [name='status']"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+        />
+    </div>
+    
+    <!-- Clear Search Button -->
+    {% if request.GET.search %}
+    <button 
+        onclick="document.getElementById('search-input').value=''; htmx.trigger(document.getElementById('search-input'), 'keyup');"
+        class="dt-action-btn dt-action-btn-secondary"
+    >
+        <i class="fas fa-times"></i>
+        Clear
+    </button>
+    {% endif %}
+    {% endif %}
+    
+    {% if show_status_filter %}
+    <!-- Status Filter -->
+    <div class="w-full sm:w-auto sm:min-w-[200px]">
+        <select 
+            name="status"
+            class="px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm sm:flex-1"
+            hx-get="{{ request.path }}"
+            hx-trigger="change"
+            hx-target="#table-container"
+            hx-indicator="#table-loading-overlay"
+            hx-include="[name='search'], [name='status']"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+        >
+            <option value="">{{ status_label|default:'All Status' }}</option>
+            {% for status in status_options %}
+            <option value="{{ status.value }}" {% if request.GET.status == status.value %}selected{% endif %}>
+                {{ status.label }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+</div>
