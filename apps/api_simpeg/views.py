@@ -188,207 +188,174 @@ def pegawai_sync(request):
     })
 
 
+def _build_pegawai_data(item, user):
+    kode_golongan = item.get('kodeGolongan')
+    kode_eselon = item.get('kodeEselon')
+    kategori_pegawai_raw = item.get('kategoriPegawai')
+    return {
+        'nip_baru': item.get('nipBaru'),
+        'nip_lama': item.get('nipLama'),
+        'nama_pegawai': item.get('namaPegawai', ''),
+        'tempat_lahir': item.get('tempatLahir'),
+        'tanggal_lahir': item.get('tanggalLahir'),
+        'jenis_kelamin': item.get('jenisKelamin'),
+        'alamat_rumah': item.get('alamatRumah'),
+        'no_hp': item.get('nohp'),
+        'id_jabatan': item.get('id_jabatan'),
+        'nama_jabatan': item.get('namaJabatan'),
+        'masa_kerja_jabatan': item.get('masaKerjaJabatan'),
+        'kode_eselon': int(kode_eselon) if kode_eselon and str(kode_eselon).strip() else None,
+        'id_opd': item.get('id_opd'),
+        'nm_opd': item.get('nm_opd'),
+        'id_opd_urut': item.get('no_urut') or None,
+        'is_opd_induk': bool(item.get('is_opd_induk', False)),
+        'id_sub_opd': item.get('id_sub_opd'),
+        'nm_sub_opd': item.get('nm_sub_opd'),
+        'id_golongan': int(kode_golongan) if kode_golongan and str(kode_golongan).strip() else None,
+        'nama_golongan': item.get('namaGolongan'),
+        'nama_pangkat': item.get('namaPangkat'),
+        'kategori_pegawai': int(kategori_pegawai_raw) if kategori_pegawai_raw and str(kategori_pegawai_raw).strip() else None,
+        'nama_kategori_pegawai': item.get('namaKategoriPegawai'),
+        'tmt_cpns': item.get('tmtCPNS'),
+        'masa_kerja_tahun': item.get('masaKerjaTahun') or None,
+        'masa_kerja_bulan': item.get('masaKerjaBulan') or None,
+        'akhir_kerja_p3k': item.get('akhirKerjaP3K'),
+        'raw_data': item,
+        'synced_by': user,
+    }
+
+
+def _process_items_bulk(items, user, existing_ids_set, now):
+    to_create = []
+    to_update_ids = []
+    to_update_data = []
+    new_count = 0
+    up_count = 0
+    total = 0
+
+    for item in items:
+        id_pegawai = item.get('id_pegawai')
+        if not id_pegawai:
+            continue
+        data = _build_pegawai_data(item, user)
+        data['synced_at'] = now
+        if id_pegawai in existing_ids_set:
+            to_update_ids.append(id_pegawai)
+            to_update_data.append(data)
+        else:
+            data['id_pegawai'] = id_pegawai
+            data['created_at'] = now
+            to_create.append(Pegawai(**data))
+        total += 1
+
+    if to_create:
+        Pegawai.objects.bulk_create(to_create, ignore_conflicts=True)
+        new_count = len(to_create)
+
+    if to_update_ids:
+        from django.db.models import Value
+        from django.utils import timezone
+        for id_pegawai, data in zip(to_update_ids, to_update_data):
+            Pegawai.objects.filter(id_pegawai=id_pegawai).update(**data)
+        up_count = len(to_update_ids)
+
+    return total, new_count, up_count
+
+
 def _run_sync_in_background(sync_id, user_id, esimpeg_token):
-    """
-    Background function untuk sync pegawai
-    Runs in separate thread
-    """
     from django.contrib.auth import get_user_model
     User = get_user_model()
-    
+    from django.utils import timezone
+
     start_time = time.time()
     api_service = EsimpegAPIService()
-    
+
     try:
-        # Get progress object
         progress = SyncProgress.objects.get(sync_id=sync_id)
         user = User.objects.get(id=user_id)
-        
-        # Create sync log
+
         sync_log = SyncLog.objects.create(
             synced_by=user,
             status='partial'
         )
-        
+
         total_records = 0
         new_records = 0
         updated_records = 0
-        
-        # First, get total pages
+
+        # Pre-load existing IDs for bulk operation detection
+        existing_ids_set = set(Pegawai.objects.values_list('id_pegawai', flat=True))
+
         first_data = api_service.get_pegawai_list(
             token=esimpeg_token,
             page=1,
-            per_page=100,
+            per_page=200,
             search=None,
             id_opd=None
         )
-        
+
         if not first_data:
             raise Exception("Gagal mengambil data dari API ESIMPEG")
-        
+
         total_pages = first_data.get('pagination', {}).get('total_pages', 1)
         total_items = first_data.get('pagination', {}).get('total', 0)
-        
-        # Update progress with totals
+
         progress.total_pages = total_pages
         progress.total_records = total_items
         progress.save()
-        
+
         logger.info(f"[Sync {sync_id}] Starting sync: {total_pages} pages, {total_items} records")
-        
-        # Process first page
+
+        now = timezone.now()
         items = first_data.get('items', [])
-        for item in items:
-            id_pegawai = item.get('id_pegawai')
-            if not id_pegawai:
-                continue
-            
-            # Prepare data with validation for numeric fields
-            kode_golongan = item.get('kodeGolongan')
-            kode_eselon = item.get('kodeEselon')
-            kategori_pegawai_raw = item.get('kategoriPegawai')
-            
-            pegawai_data = {
-                'nip_baru': item.get('nipBaru'),
-                'nip_lama': item.get('nipLama'),
-                'nama_pegawai': item.get('namaPegawai', ''),
-                'tempat_lahir': item.get('tempatLahir'),
-                'tanggal_lahir': item.get('tanggalLahir'),
-                'jenis_kelamin': item.get('jenisKelamin'),
-                'alamat_rumah': item.get('alamatRumah'),
-                'no_hp': item.get('nohp'),
-                'id_jabatan': item.get('id_jabatan'),
-                'nama_jabatan': item.get('namaJabatan'),
-                'masa_kerja_jabatan': item.get('masaKerjaJabatan'),
-                'kode_eselon': int(kode_eselon) if kode_eselon and str(kode_eselon).strip() else None,
-                'id_opd': item.get('id_opd'),
-                'nm_opd': item.get('nm_opd'),
-                'id_opd_urut': item.get('no_urut') or None,
-                'is_opd_induk': bool(item.get('is_opd_induk', False)),
-                'id_sub_opd': item.get('id_sub_opd'),
-                'nm_sub_opd': item.get('nm_sub_opd'),
-                'id_golongan': int(kode_golongan) if kode_golongan and str(kode_golongan).strip() else None,
-                'nama_golongan': item.get('namaGolongan'),
-                'nama_pangkat': item.get('namaPangkat'),
-                'kategori_pegawai': int(kategori_pegawai_raw) if kategori_pegawai_raw and str(kategori_pegawai_raw).strip() else None,
-                'nama_kategori_pegawai': item.get('namaKategoriPegawai'),
-                'tmt_cpns': item.get('tmtCPNS'),
-                'masa_kerja_tahun': item.get('masaKerjaTahun') or None,
-                'masa_kerja_bulan': item.get('masaKerjaBulan') or None,
-                'akhir_kerja_p3k': item.get('akhirKerjaP3K'),
-                'raw_data': item,
-                'synced_by': user,
-            }
-            
-            pegawai, created = Pegawai.objects.update_or_create(
-                id_pegawai=id_pegawai,
-                defaults=pegawai_data
-            )
-            
-            if created:
-                new_records += 1
-            else:
-                updated_records += 1
-            
-            total_records += 1
-        
-        # Update progress after first page
+        t, n, u = _process_items_bulk(items, user, existing_ids_set, now)
+        total_records += t
+        new_records += n
+        updated_records += u
+        existing_ids_set.update(item.get('id_pegawai') for item in items if item.get('id_pegawai'))
+
         progress.current_page = 1
         progress.processed_records = total_records
         progress.new_records = new_records
         progress.updated_records = updated_records
         progress.save()
-        
+
         logger.info(f"[Sync {sync_id}] Page 1/{total_pages} completed: {total_records} records")
-        
-        # Process remaining pages
+
         for page in range(2, total_pages + 1):
             logger.info(f"[Sync {sync_id}] Processing page {page}/{total_pages}...")
-            
+
             data = api_service.get_pegawai_list(
                 token=esimpeg_token,
                 page=page,
-                per_page=100,
+                per_page=200,
                 search=None,
                 id_opd=None
             )
-            
+
             if not data or not data.get('items'):
                 logger.warning(f"[Sync {sync_id}] No data on page {page}, skipping...")
                 continue
-            
+
             items = data.get('items', [])
-            
-            for item in items:
-                id_pegawai = item.get('id_pegawai')
-                if not id_pegawai:
-                    continue
-                
-                # Prepare data with validation for numeric fields
-                kode_golongan = item.get('kodeGolongan')
-                kode_eselon = item.get('kodeEselon')
-                kategori_pegawai_raw = item.get('kategoriPegawai')
-                
-                pegawai_data = {
-                    'nip_baru': item.get('nipBaru'),
-                    'nip_lama': item.get('nipLama'),
-                    'nama_pegawai': item.get('namaPegawai', ''),
-                    'tempat_lahir': item.get('tempatLahir'),
-                    'tanggal_lahir': item.get('tanggalLahir'),
-                    'jenis_kelamin': item.get('jenisKelamin'),
-                    'alamat_rumah': item.get('alamatRumah'),
-                    'no_hp': item.get('nohp'),
-                    'id_jabatan': item.get('id_jabatan'),
-                    'nama_jabatan': item.get('namaJabatan'),
-                    'masa_kerja_jabatan': item.get('masaKerjaJabatan'),
-                    'kode_eselon': int(kode_eselon) if kode_eselon and str(kode_eselon).strip() else None,
-                    'id_opd': item.get('id_opd'),
-                    'nm_opd': item.get('nm_opd'),
-                    'id_opd_urut': item.get('no_urut') or None,
-                    'is_opd_induk': bool(item.get('is_opd_induk', False)),
-                    'id_sub_opd': item.get('id_sub_opd'),
-                    'nm_sub_opd': item.get('nm_sub_opd'),
-                    'id_golongan': int(kode_golongan) if kode_golongan and str(kode_golongan).strip() else None,
-                    'nama_golongan': item.get('namaGolongan'),
-                    'nama_pangkat': item.get('namaPangkat'),
-                    'kategori_pegawai': int(kategori_pegawai_raw) if kategori_pegawai_raw and str(kategori_pegawai_raw).strip() else None,
-                    'nama_kategori_pegawai': item.get('namaKategoriPegawai'),
-                    'tmt_cpns': item.get('tmtCPNS'),
-                    'masa_kerja_tahun': item.get('masaKerjaTahun') or None,
-                    'masa_kerja_bulan': item.get('masaKerjaBulan') or None,
-                    'akhir_kerja_p3k': item.get('akhirKerjaP3K'),
-                    'raw_data': item,
-                    'synced_by': user,
-                }
-                
-                pegawai, created = Pegawai.objects.update_or_create(
-                    id_pegawai=id_pegawai,
-                    defaults=pegawai_data
-                )
-                
-                if created:
-                    new_records += 1
-                else:
-                    updated_records += 1
-                
-                total_records += 1
-            
-            # Update progress after each page
+            t, n, u = _process_items_bulk(items, user, existing_ids_set, now)
+            total_records += t
+            new_records += n
+            updated_records += u
+            existing_ids_set.update(item.get('id_pegawai') for item in items if item.get('id_pegawai'))
+
             progress.current_page = page
             progress.processed_records = total_records
             progress.new_records = new_records
             progress.updated_records = updated_records
             progress.save()
-            
-            # Log progress
+
             progress_pct = int((page / total_pages) * 100)
             logger.info(f"[Sync {sync_id}] Progress: {progress_pct}% ({page}/{total_pages} pages, {total_records} records)")
-        
-        # Mark progress as completed
+
         progress.status = 'completed'
         progress.save()
-        
-        # Update sync log
+
         duration = time.time() - start_time
         sync_log.total_records = total_records
         sync_log.new_records = new_records
@@ -396,13 +363,12 @@ def _run_sync_in_background(sync_id, user_id, esimpeg_token):
         sync_log.status = 'success'
         sync_log.duration_seconds = duration
         sync_log.save()
-        
+
         logger.info(f"[Sync {sync_id}] Completed: {total_records} records in {duration:.2f}s")
-    
+
     except Exception as e:
         logger.error(f"[Sync {sync_id}] Error: {str(e)}", exc_info=True)
-        
-        # Mark progress as failed
+
         try:
             progress = SyncProgress.objects.get(sync_id=sync_id)
             progress.status = 'failed'
@@ -410,8 +376,7 @@ def _run_sync_in_background(sync_id, user_id, esimpeg_token):
             progress.save()
         except:
             pass
-        
-        # Update sync log with error
+
         try:
             if 'sync_log' in locals():
                 sync_log.status = 'failed'
