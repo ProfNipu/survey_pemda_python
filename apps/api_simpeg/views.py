@@ -188,33 +188,39 @@ def pegawai_sync(request):
     })
 
 
+def _safe_int(value):
+    if value is None:
+        return None
+    try:
+        s = str(value).strip()
+        return int(s) if s else None
+    except (ValueError, TypeError):
+        return None
+
 def _build_pegawai_data(item, user):
-    kode_golongan = item.get('kodeGolongan')
-    kode_eselon = item.get('kodeEselon')
-    kategori_pegawai_raw = item.get('kategoriPegawai')
     return {
         'nip_baru': item.get('nipBaru'),
         'nip_lama': item.get('nipLama'),
         'nama_pegawai': item.get('namaPegawai', ''),
         'tempat_lahir': item.get('tempatLahir'),
         'tanggal_lahir': item.get('tanggalLahir'),
-        'jenis_kelamin': item.get('jenisKelamin'),
+        'jenis_kelamin': _safe_int(item.get('jenisKelamin')),
         'alamat_rumah': item.get('alamatRumah'),
         'no_hp': item.get('nohp'),
         'id_jabatan': item.get('id_jabatan'),
         'nama_jabatan': item.get('namaJabatan'),
         'masa_kerja_jabatan': item.get('masaKerjaJabatan'),
-        'kode_eselon': int(kode_eselon) if kode_eselon and str(kode_eselon).strip() else None,
+        'kode_eselon': _safe_int(item.get('kodeEselon')),
         'id_opd': item.get('id_opd'),
         'nm_opd': item.get('nm_opd'),
         'id_opd_urut': item.get('no_urut') or None,
         'is_opd_induk': bool(item.get('is_opd_induk', False)),
         'id_sub_opd': item.get('id_sub_opd'),
         'nm_sub_opd': item.get('nm_sub_opd'),
-        'id_golongan': int(kode_golongan) if kode_golongan and str(kode_golongan).strip() else None,
+        'id_golongan': _safe_int(item.get('kodeGolongan')),
         'nama_golongan': item.get('namaGolongan'),
         'nama_pangkat': item.get('namaPangkat'),
-        'kategori_pegawai': int(kategori_pegawai_raw) if kategori_pegawai_raw and str(kategori_pegawai_raw).strip() else None,
+        'kategori_pegawai': _safe_int(item.get('kategoriPegawai')),
         'nama_kategori_pegawai': item.get('namaKategoriPegawai'),
         'tmt_cpns': item.get('tmtCPNS'),
         'masa_kerja_tahun': item.get('masaKerjaTahun') or None,
