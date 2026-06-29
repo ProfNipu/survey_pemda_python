@@ -135,6 +135,23 @@
     select[data-select-enhanced="1"] { display: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; outline: 0 !important; }
     [data-select-enhanced-wrapper] select { display: none !important; }
     
+    /* Hide any duplicate enhanced wrappers - keep only the first one */
+    [data-select-enhanced-wrapper] + [data-select-enhanced-wrapper] { display: none !important; }
+    
+    /* Ensure select inside wrapper is always hidden */
+    [data-select-enhanced-wrapper] > select { 
+        display: none !important; 
+        position: absolute !important;
+        left: -9999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        pointer-events: none !important;
+        visibility: hidden !important;
+    }
+    
         /* User Dropdown Styles */
     .user-menu-btn {
         transition: all 0.2s ease;
@@ -1003,6 +1020,23 @@
             document.title = baseTitle + ' | ' + t;
           } else {
             document.title = baseTitle;
+          }
+        } catch(e) {}
+      })();
+    </script>
+    <script>
+      (function(){
+        try {
+          if (typeof htmx !== 'undefined') {
+            htmx.config.ignoreTitle = true;
+            htmx.on('htmx:afterSwap', function(){
+              try {
+                var baseTitle = '{{ app_name }} - {{ app_instansi }}';
+                var h = document.querySelector('.page-title');
+                var t = h ? (h.textContent || '').trim() : '';
+                document.title = t ? baseTitle + ' | ' + t : baseTitle;
+              } catch(e) {}
+            });
           }
         } catch(e) {}
       })();
@@ -2089,5 +2123,14 @@
         })();
 </script>
 {% block extra_js %}{% endblock %}
+
+<div id="fotoPreviewModal" class="fixed inset-0 z-[9999] hidden" role="dialog" aria-modal="true">
+  <div data-modal-overlay class="fixed inset-0 transition-opacity duration-300 opacity-0" style="background-color: rgba(0,0,0,0.75);"></div>
+  <div class="fixed inset-0 flex items-center justify-center p-4">
+    <div data-modal-panel class="relative transform transition-all duration-300 opacity-0 scale-95 translate-y-2">
+      <div data-modal-content class="relative"></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

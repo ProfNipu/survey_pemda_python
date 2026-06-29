@@ -13,10 +13,11 @@ services:
     ports:
       - "8006:8000"
     environment:
-      - DB_HOST=mysql-main
+      - DB_HOST=postgres-shared
       - DB_NAME=survey_pemda_python_db
-      - DB_USER=root
-      - DB_PORT=3306
+      - DB_USER=shared_admin
+      - DB_PASSWORD=shared_admin_password_change_me
+      - DB_PORT=5432
       - REDIS_HOST=redis-main
       - REDIS_PORT=6379
       - REDIS_PASSWORD=5406@Pessel!23#
@@ -36,6 +37,7 @@ services:
           cpus: '1.0'  # Reserved CPU
     networks:
       - proxy-network
+      - shared-db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
       interval: 30s
@@ -49,4 +51,6 @@ volumes:
 
 networks:
   proxy-network:
+    external: true
+  shared-db:
     external: true

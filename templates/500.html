@@ -1,27 +1,72 @@
-{% extends 'base_dashboard.html' %}
-{% load static %}
-
-{% block page_title %}500 Server Error{% endblock %}
-
-{% block content %}
-<div class="max-w-3xl mx-auto">
-  <div class="bg-white shadow rounded-xl p-8">
-    <div class="flex items-start gap-4">
-      <div class="shrink-0">
-        <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-2xl">
-          <i class="fas fa-bug"></i>
-        </div>
-      </div>
-      <div class="grow">
-        <h1 class="text-2xl font-semibold text-gray-800 mb-2">{{ server_error_title|default:'Terjadi Kesalahan pada Server' }}</h1>
-        <p class="text-gray-600 mb-4">{{ server_error_message|default:'Maaf, terjadi kesalahan tidak terduga. Tim kami telah diberi tahu (jika logging aktif).' }}</p>
-        <div class="flex gap-2">
-          <a href="/" class="bg-primary hover:bg-primary-600 text-white font-medium px-4 py-2 rounded-lg">
-            <i class="fas fa-home mr-2"></i> Ke Dashboard
-          </a>
-        </div>
-      </div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 Server Error</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        .icon {
+            width: 80px;
+            height: 80px;
+            background: #fee;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+            color: #e53e3e;
+        }
+        h1 {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+        p {
+            color: #718096;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #5a67d8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">&#9888;&#65039;</div>
+        <h1>Terjadi Kesalahan pada Server</h1>
+        <p>Maaf, terjadi kesalahan tidak terduga. Silakan coba lagi atau hubungi administrator jika masalah berlanjut.</p>
+        <a href="/" class="btn">Kembali ke Beranda</a>
     </div>
-  </div>
-</div>
-{% endblock %}
+</body>
+</html>

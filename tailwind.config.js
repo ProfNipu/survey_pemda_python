@@ -11,7 +11,19 @@ module.exports = {
   safelist: [
     'pb-12','pb-8','pb-16','md:pb-16',
     'mt-3','mt-2','mb-3','py-3',
-    'h-8','h-12'
+    'h-8','h-12',
+    'bg-primary-600','hover:bg-primary-700','focus:ring-primary/25',
+    'bg-emerald-600','hover:bg-emerald-700','focus:ring-emerald-500',
+    'bg-amber-500','hover:bg-amber-600','focus:ring-amber-400',
+    'bg-indigo-600','hover:bg-indigo-700','focus:ring-indigo-500',
+    'disabled:opacity-50','disabled:cursor-not-allowed',
+    'shadow-sm','focus:outline-none','focus:ring-2','focus:ring-offset-2',
+    {
+      pattern: /^(bg|hover:bg)-(emerald|amber|indigo|primary)-(400|500|600|700)$/,
+    },
+    {
+      pattern: /^focus:ring-(emerald|amber|indigo|primary)-(300|400|500|600)$/,
+    }
   ],
   theme: {
     extend: {

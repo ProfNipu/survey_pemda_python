@@ -330,21 +330,6 @@ def landing_page(request):
             except Exception as e:
                 logger.error(f"Failed to log login activity: {e}")
             
-            # CHECK: Force change password if using default password
-            if user.check_password('Pegawai@Pessel'):
-                logger.info(f"User {user.username} using default password - redirecting to force change password")
-                force_change_url = '/accounts/force-change-password/'
-                
-                if is_ajax:
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'Anda harus mengganti password default terlebih dahulu',
-                        'redirect_url': force_change_url,
-                        'type': 'warning'
-                    })
-                else:
-                    return redirect('accounts:force_change_password')
-            
             success_msg = f'Selamat datang, {user.name}!'
             next_url = request.GET.get('next', '/dashboard/')
             

@@ -23,12 +23,12 @@ services:
       - ALLOWED_HOSTS=survey-pemda-python.local,172.16.30.139,localhost
       - SECURE_SSL_REDIRECT=False
 
-      # Database (shared MySQL)
-      - DB_HOST=mysql-main
+      # Database (shared PostgreSQL)
+      - DB_HOST=postgres-shared
       - DB_NAME=survey_pemda_python_db
-      - DB_USER=root
-      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD:-5406@Pessel!23#}
-      - DB_PORT=3306
+      - DB_USER=shared_admin
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-shared_admin_password_change_me}
+      - DB_PORT=5432
 
       # Redis (shared)
       - REDIS_HOST=redis-main
@@ -56,6 +56,7 @@ services:
           cpus: '1.0'
     networks:
       - proxy-network
+      - shared-db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
       interval: 30s
@@ -80,4 +81,6 @@ networks:
   proxy-network:
     external: true
     name: proxy-network
+  shared-db:
+    external: true
 

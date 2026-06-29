@@ -13,6 +13,27 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # IMPORTANT: Rename old table FIRST before creating new model with same table name
+        migrations.AlterModelOptions(
+            name='pegawaidatasementara',
+            options={'ordering': ['-created_at'], 'verbose_name': 'Data Pegawai SIMPEG (Lama)', 'verbose_name_plural': 'Data Pegawai SIMPEG (Lama)'},
+        ),
+        migrations.RemoveIndex(
+            model_name='pegawaidatasementara',
+            name='api_simpeg__nipPega_484b48_idx',
+        ),
+        migrations.RemoveIndex(
+            model_name='pegawaidatasementara',
+            name='api_simpeg__id_pega_c276a1_idx',
+        ),
+        migrations.RemoveIndex(
+            model_name='pegawaidatasementara',
+            name='api_simpeg__id_opd_26237e_idx',
+        ),
+        migrations.AlterModelTable(
+            name='pegawaidatasementara',
+            table='api_simpeg_pegawai_sementara',
+        ),
         migrations.CreateModel(
             name='Pegawai',
             fields=[
@@ -69,26 +90,6 @@ class Migration(migrations.Migration):
                 'db_table': 'api_simpeg_sync_log',
                 'ordering': ['-synced_at'],
             },
-        ),
-        migrations.AlterModelOptions(
-            name='pegawaidatasementara',
-            options={'ordering': ['-created_at'], 'verbose_name': 'Data Pegawai SIMPEG (Lama)', 'verbose_name_plural': 'Data Pegawai SIMPEG (Lama)'},
-        ),
-        migrations.RemoveIndex(
-            model_name='pegawaidatasementara',
-            name='api_simpeg__nipPega_484b48_idx',
-        ),
-        migrations.RemoveIndex(
-            model_name='pegawaidatasementara',
-            name='api_simpeg__id_pega_c276a1_idx',
-        ),
-        migrations.RemoveIndex(
-            model_name='pegawaidatasementara',
-            name='api_simpeg__id_opd_26237e_idx',
-        ),
-        migrations.AlterModelTable(
-            name='pegawaidatasementara',
-            table='api_simpeg_pegawai_sementara',
         ),
         migrations.AddField(
             model_name='pegawai',

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import views_survey360
 
 app_name = 'survey'
 
@@ -49,4 +50,14 @@ urlpatterns = [
     path('penilaian-atasan/riwayat/', views.penilaian_atasan_riwayat, name='penilaian_atasan_riwayat'),
     path('penilaian-atasan/<int:pk>/edit/', views.penilaian_atasan_edit, name='penilaian_atasan_edit'),
     path('penilaian-atasan/<int:pk>/detail/', views.penilaian_atasan_detail, name='penilaian_atasan_detail'),
+
+    # Survey 360 URLs
+    path('survey360/', views_survey360.survey360_index, name='survey360_index'),
+    path('survey360/invalid-nip/', views_survey360.survey360_invalid_nip, name='survey360_invalid_nip'),
+    path('survey360/preview-target/ajax/', views_survey360.survey360_preview_target, name='survey360_preview_target'),
+    path('survey360/create/', views_survey360.survey360_create, name='survey360_create'),
+    path('survey360/store/', views_survey360.survey360_store, name='survey360_store'),
+    path('survey360/laporan/', views_survey360.survey360_laporan, name='survey360_laporan'),
+    path('survey360/laporan/download/', views_survey360.survey360_download_excel, name='survey360_download_excel'),
+    path('survey360/reset/<int:pk>/', views_survey360.survey360_reset, name='survey360_reset'),
 ]

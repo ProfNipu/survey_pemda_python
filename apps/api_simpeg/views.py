@@ -272,6 +272,7 @@ def _run_sync_in_background(sync_id, user_id, esimpeg_token):
     from django.contrib.auth import get_user_model
     User = get_user_model()
     from django.utils import timezone
+    from core.models import MsLogData
 
     start_time = time.time()
     api_service = EsimpegAPIService()
@@ -283,6 +284,16 @@ def _run_sync_in_background(sync_id, user_id, esimpeg_token):
         sync_log = SyncLog.objects.create(
             synced_by=user,
             status='partial'
+        )
+
+        # Log sync start to audit trail
+        MsLogData.objects.create(
+            table_name='api_simpeg_pegawai',
+            action='sync_start',
+            user_id=user.id,
+            username=user.username,
+            via='web',
+            description='Memulai sinkronisasi data pegawai dari ESIMPEG API'
         )
 
         total_records = 0
@@ -370,6 +381,23 @@ def _run_sync_in_background(sync_id, user_id, esimpeg_token):
         sync_log.duration_seconds = duration
         sync_log.save()
 
+        # Log sync completion to audit trail
+        MsLogData.objects.create(
+            table_name='api_simpeg_pegawai',
+            action='sync_complete',
+            user_id=user.id,
+            username=user.username,
+            via='web',
+            new_data={
+                'total_records': total_records,
+                'new_records': new_records,
+                'updated_records': updated_records,
+                'duration_seconds': round(duration, 2),
+                'sync_id': sync_id,
+            },
+            description=f'Sinkronisasi selesai: {total_records} records ({new_records} baru, {updated_records} update) dalam {duration:.2f}s'
+        )
+
         logger.info(f"[Sync {sync_id}] Completed: {total_records} records in {duration:.2f}s")
 
     except Exception as e:
@@ -389,6 +417,20 @@ def _run_sync_in_background(sync_id, user_id, esimpeg_token):
                 sync_log.error_message = str(e)
                 sync_log.duration_seconds = time.time() - start_time
                 sync_log.save()
+        except:
+            pass
+
+        try:
+            if 'user' in locals():
+                MsLogData.objects.create(
+                    table_name='api_simpeg_pegawai',
+                    action='sync_failed',
+                    user_id=user.id,
+                    username=user.username,
+                    via='web',
+                    old_data={'sync_id': sync_id},
+                    description=f'Sinkronisasi gagal: {str(e)}'
+                )
         except:
             pass
 

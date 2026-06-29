@@ -4,22 +4,22 @@ echo "======================================="
 echo "🐍 Starting Django Application"
 echo "======================================="
 
-# Wait for MySQL
-echo "⏳ Waiting for MySQL..."
-while ! mysqladmin ping -h"$DB_HOST" -P"$DB_PORT" -u"$DB_USER" -p"$DB_PASSWORD" --silent --skip-ssl; do
-    echo "⏳ MySQL is unavailable - sleeping..."
+# Wait for PostgreSQL
+echo "⏳ Waiting for PostgreSQL..."
+export PGPASSWORD="$DB_PASSWORD"
+while ! pg_isready -h"$DB_HOST" -p"$DB_PORT" -U"$DB_USER" -d"$DB_NAME" -q; do
+    echo "⏳ PostgreSQL is unavailable - sleeping..."
     sleep 2
 done
-echo "✅ MySQL is up and running!"
+echo "✅ PostgreSQL is up and running!"
+unset PGPASSWORD
 
 # Skip Redis check for now
 echo "ℹ️ Skipping Redis check - will use database cache instead"
 
 if [ "${CREATE_DB_IF_NOT_EXISTS:-0}" = "1" ]; then
     echo "🗄️ Setting up database (CREATE_DB_IF_NOT_EXISTS=1)..."
-    mysql -h"$DB_HOST" -P"$DB_PORT" -u"$DB_USER" -p"$DB_PASSWORD" --skip-ssl -e "
-CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-" 2>/dev/null || echo "⚠️ Database setup skipped (might already exist)"
+    PGPASSWORD="$DB_PASSWORD" psql -h"$DB_HOST" -p"$DB_PORT" -U"$DB_USER" -d postgres -c "CREATE DATABASE $DB_NAME" 2>/dev/null || echo "⚠️ Database setup skipped (might already exist)"
 else
     echo "ℹ️ Skipping DB create (CREATE_DB_IF_NOT_EXISTS!=1)"
 fi

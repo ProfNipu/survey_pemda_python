@@ -1,0 +1,25 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Reset Survey 360{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-6">
+    <div class="max-w-lg mx-auto bg-white rounded-xl p-6 shadow-lg">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Konfirmasi Reset Survey</h2>
+        <p class="text-gray-600 mb-4">
+            Apakah Anda yakin ingin mereset survey dari <strong>{{ obj.nip_pegawaiDinilai }}</strong>?
+            Semua jawaban akan dihapus dan status akan dikembalikan ke draft.
+        </p>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="flex justify-end gap-3">
+                <a href="{% url 'survey:survey360_laporan' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition-colors">Batal</a>
+                <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                    Ya, Reset
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

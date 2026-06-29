@@ -56,39 +56,3 @@ class SessionInactivityMiddleware:
         return response
 
 
-class ForceChangePasswordMiddleware:
-    """
-    Middleware to force users with default password to change it
-    Users cannot access any page except force change password page until they change it
-    """
-    
-    def __init__(self, get_response):
-        self.get_response = get_response
-        
-        # URLs that are allowed even with default password
-        self.allowed_paths = [
-            '/accounts/force-change-password/',
-            '/accounts/logout/',
-            '/static/',
-            '/media/',
-        ]
-    
-    def __call__(self, request):
-        # Skip for anonymous users
-        if not request.user.is_authenticated:
-            return self.get_response(request)
-        
-        # Check if current path is allowed
-        current_path = request.path
-        is_allowed = any(current_path.startswith(path) for path in self.allowed_paths)
-        
-        if is_allowed:
-            return self.get_response(request)
-        
-        # Check if user has default password
-        if request.user.check_password('Pegawai@Pessel'):
-            # Redirect to force change password page
-            return redirect('accounts:force_change_password')
-        
-        response = self.get_response(request)
-        return response

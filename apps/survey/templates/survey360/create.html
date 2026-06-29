@@ -1,0 +1,230 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% load survey_extras %}
+
+{% block page_title %}Survey 360 - Penilaian{% endblock %}
+
+{% block extra_css %}
+<style>
+.survey-slider {
+    width: 100%;
+    height: 10px;
+    border-radius: 5px;
+    background: linear-gradient(to right, #b91c1c 0%, #b91c1c 20%, #fca5a5 20%, #fca5a5 40%, #eab308 40%, #eab308 60%, #86efac 60%, #86efac 80%, #16a34a 80%, #16a34a 100%);
+    outline: none;
+    -webkit-appearance: none;
+    position: relative;
+    transition: all 0.3s ease;
+}
+.survey-question { margin: 25px 0; position: relative; }
+.survey-slider { margin: 20px 0; }
+.slider-container { position: relative; }
+.tick-1, .tick-2, .tick-3, .tick-4, .tick-5 {
+    position: absolute; top: -4px; width: 8px; height: 8px;
+    background: #fff; border: 2px solid #374151; border-radius: 50%;
+    transform: translateX(-50%); box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    z-index: 5; pointer-events: none;
+}
+.tick-1 { left: 0%; }
+.tick-2 { left: 25%; }
+.tick-3 { left: 50%; }
+.tick-4 { left: 75%; }
+.tick-5 { left: 100%; }
+.survey-slider::-webkit-slider-thumb {
+    appearance: none; width: 32px; height: 32px; border-radius: 50%;
+    background: #fff; border: 3px solid #000; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    position: relative; z-index: 10;
+}
+.survey-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.survey-slider.value-1::-webkit-slider-thumb { background: #b91c1c; border-color: #7f1d1d; }
+.survey-slider.value-2::-webkit-slider-thumb { background: #fca5a5; border-color: #dc2626; }
+.survey-slider.value-3::-webkit-slider-thumb { background: #fde047; border-color: #ca8a04; }
+.survey-slider.value-4::-webkit-slider-thumb { background: #86efac; border-color: #16a34a; }
+.survey-slider.value-5::-webkit-slider-thumb { background: #16a34a; border-color: #166534; }
+.slider-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #6b7280; }
+.pegawai-info { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mx-auto px-4 py-6">
+    <div class="w-full max-w-7xl mx-auto">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">Survey 360° - Penilaian Kinerja Pegawai</h1>
+                <div class="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full">
+                    <span class="text-sm font-semibold">Tahun Penilaian: {{ tahun_penilaian }}</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="pegawai-info">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Pegawai Penilai:</h3>
+                    <div class="space-y-2">
+                        <div><p class="text-xs text-gray-600">Nama:</p><p class="text-sm font-medium text-gray-800">{{ pegawai_penilai.nama_pegawai }}</p></div>
+                        <div><p class="text-xs text-gray-600">NIP:</p><p class="text-sm font-medium text-gray-800">{{ pegawai_penilai.nip_baru|default:pegawai_penilai.nip_lama }}</p></div>
+                        <div><p class="text-xs text-gray-600">Jabatan:</p><p class="text-sm font-medium text-gray-800">{{ pegawai_penilai.nama_jabatan|default:'-' }}</p></div>
+                        <div><p class="text-xs text-gray-600">Unit Kerja:</p><p class="text-sm font-medium text-gray-800">{{ pegawai_penilai.nm_opd|default:'-' }}</p></div>
+                    </div>
+                </div>
+                <div class="pegawai-info">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Pegawai yang Dinilai:</h3>
+                    <div class="space-y-2">
+                        <div><p class="text-xs text-gray-600">Nama:</p><p class="text-sm font-medium text-gray-800">{{ pegawai_dinilai.nama_pegawai }}</p></div>
+                        <div><p class="text-xs text-gray-600">NIP:</p><p class="text-sm font-medium text-gray-800">{{ pegawai_dinilai.nip_baru|default:pegawai_dinilai.nip_lama }}</p></div>
+                        <div><p class="text-xs text-gray-600">Jabatan:</p><p class="text-sm font-medium text-gray-800">{{ pegawai_dinilai.nama_jabatan|default:'-' }}</p></div>
+                        <div><p class="text-xs text-gray-600">Unit Kerja:</p><p class="text-sm font-medium text-gray-800">{{ pegawai_dinilai.nm_opd|default:'-' }}</p></div>
+                    </div>
+                </div>
+            </div>
+
+            {% if peran_penilai %}
+            <div class="flex justify-center mb-6">
+                <div class="inline-flex items-center space-x-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+                    <span class="text-sm font-bold text-blue-600">
+                        {% if peran_penilai == '10' %}PENILAI BAWAHAN{% elif peran_penilai == '20' %}PENILAI SEBAYA{% elif peran_penilai == '30' %}PENILAI ATASAN{% endif %}
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+
+            <form id="surveyForm" action="{% url 'survey:survey360_store' %}" method="POST" class="space-y-8">
+                {% csrf_token %}
+                <input type="hidden" name="survey_id" value="{{ survey_id }}">
+                <input type="hidden" name="id_pegawaiPenilai" value="{{ pegawai_penilai.id_pegawai }}">
+                <input type="hidden" name="id_pegawaiDinilai" value="{{ pegawai_dinilai.id_pegawai }}">
+                <input type="hidden" name="tahunPenilaian" value="{{ tahun_penilaian }}">
+
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                    <p class="text-sm text-blue-700"><strong>Petunjuk:</strong> Silakan berikan penilaian untuk setiap aspek berikut dengan menggeser slider dari 1 (Sangat Kurang) hingga 5 (Sangat Baik).</p>
+                </div>
+
+                {% for pt in pertanyaan_list %}
+                <div class="survey-question">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        {{ forloop.counter }}. {{ pt.judul }}
+                        <span class="text-red-500">*</span>
+                    </label>
+                    {% if pt.pertanyaan %}
+                    <p class="text-sm text-gray-600 mb-4">{{ pt.pertanyaan }}</p>
+                    {% endif %}
+                    <div class="slider-container">
+                        <input type="range" name="pertanyaan_{{ pt.id }}" min="1" max="5" value="{{ existing_jawaban|get_item:pt.id|default:'3' }}"
+                               class="survey-slider" onchange="updateSlider('{{ pt.id }}', this.value)" required>
+                        <div class="slider-ticks">
+                            <div class="tick-1"></div>
+                            <div class="tick-2"></div>
+                            <div class="tick-3"></div>
+                            <div class="tick-4"></div>
+                            <div class="tick-5"></div>
+                        </div>
+                    </div>
+                    <div class="slider-labels">
+                        <span>1 - Sangat Kurang</span>
+                        <span>2 - Kurang</span>
+                        <span>3 - Cukup</span>
+                        <span>4 - Baik</span>
+                        <span>5 - Sangat Baik</span>
+                    </div>
+                    <div class="text-center mt-2">
+                        <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                            Nilai: <span id="val_{{ pt.id }}">{{ existing_jawaban|get_item:pt.id|default:'3' }}</span>
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8 text-gray-500">Belum ada pertanyaan survey yang dikonfigurasi.</div>
+                {% endfor %}
+
+                <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+                    <a href="{% url 'survey:survey360_index' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition duration-300">
+                        Kembali
+                    </a>
+                    <button type="button" onclick="confirmSubmit()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-300">
+                        Submit Penilaian
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/sweetalert2.min.js' %}?v=1.2"></script>
+<script>
+function updateSlider(id, value) {
+    var el = document.getElementById('val_' + id);
+    var slider = document.querySelector('input[name="pertanyaan_' + id + '"]');
+    if (el) el.textContent = value;
+    if (slider) {
+        slider.classList.remove('value-1', 'value-2', 'value-3', 'value-4', 'value-5');
+        slider.classList.add('value-' + value);
+    }
+    var badge = el ? el.parentElement : null;
+    if (badge) {
+        badge.classList.remove('bg-red-100', 'text-red-800', 'bg-yellow-100', 'text-yellow-800', 'bg-green-100', 'text-green-800');
+        if (value <= 2) badge.classList.add('bg-red-100', 'text-red-800');
+        else if (value == 3) badge.classList.add('bg-yellow-100', 'text-yellow-800');
+        else badge.classList.add('bg-green-100', 'text-green-800');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.survey-slider').forEach(function(s) {
+        updateSlider(s.name.replace('pertanyaan_', ''), s.value);
+    });
+});
+
+function confirmSubmit() {
+    var allValid = true;
+    document.querySelectorAll('.survey-slider').forEach(function(s) {
+        var v = parseInt(s.value);
+        if (v < 1 || v > 5) allValid = false;
+    });
+    if (!allValid) {
+        Swal.fire({ icon: 'warning', title: 'Penilaian Belum Lengkap', text: 'Harap berikan penilaian untuk semua aspek.', confirmButtonColor: '#f59e0b' });
+        return;
+    }
+    Swal.fire({
+        title: 'Konfirmasi Submit',
+        html: '<p>Apakah Anda yakin ingin mengirim penilaian ini?</p><div class="bg-red-50 border border-red-200 rounded-lg p-3 mt-3"><p class="text-red-800 text-sm"><strong>PERINGATAN:</strong> Setelah disubmit, data FINAL dan TIDAK DAPAT DIUBAH.</p></div>',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, Submit',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            Swal.fire({ title: 'Menyimpan...', text: 'Harap tunggu', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+            var form = document.getElementById('surveyForm');
+            var fd = new FormData(form);
+            fetch(form.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.success) {
+                    var cd = 5;
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Penilaian Berhasil!',
+                        html: '<p>Survey 360° berhasil disubmit.</p><p class="text-gray-600 text-sm mt-2">Dialihkan dalam <strong><span id="countdown">' + cd + '</span></strong> detik...</p>',
+                        showConfirmButton: false,
+                        timer: 5000,
+                        didOpen: function() {
+                            setInterval(function() { cd--; var el = document.getElementById('countdown'); if (el) el.textContent = cd; }, 1000);
+                        }
+                    }).then(function() { window.location.href = '{% url "survey:survey360_index" %}'; });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: d.errors ? d.errors.join(', ') : 'Terjadi kesalahan.' });
+                }
+            })
+            .catch(function() {
+                Swal.fire({ icon: 'error', title: 'Kesalahan', text: 'Gagal menyimpan penilaian.' });
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

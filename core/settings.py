@@ -115,7 +115,6 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'core.middleware.SessionInactivityMiddleware',  # From middleware.py - Auto-logout on inactivity
-    'core.middleware.ForceChangePasswordMiddleware',  # From middleware.py - Force change default password
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'apps.manajemen.middleware.AdminAccessMiddleware',  # Restrict /admin/ to superusers only
@@ -159,45 +158,36 @@ DATABASES = {
     }
 }
 
-# Use MySQL if available, fall back to SQLite
+# Use PostgreSQL if available, fall back to SQLite
 if config('DB_HOST', default=None):
     DATABASES = {
         'default': {
-            'ENGINE': config('DB_ENGINE', default='django.db.backends.mysql'),
-            'NAME': config('DB_NAME', default='aplikasi_test_db'),
-            'USER': config('DB_USER', default='root'),
+            'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+            'NAME': config('DB_NAME', default='survey_pemda_python_db'),
+            'USER': config('DB_USER', default='postgres'),
             'PASSWORD': config('DB_PASSWORD'),
-            'HOST': config('DB_HOST', default='mysql-main'),
-            'PORT': config('DB_PORT', default=3306, cast=int),
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            },
+            'HOST': config('DB_HOST', default='postgres-shared'),
+            'PORT': config('DB_PORT', default=5432, cast=int),
         },
-        # Laravel Database Connection (For API Documentation)
-        # Uses separate connection to read from existing Laravel database
+        # Laravel Database Connection (For API Documentation / Import Source)
+        # Connects to existing Laravel MySQL database
         'laravel': {
-            'ENGINE': config('LARAVEL_DB_ENGINE', default=config('DB_ENGINE', default='django.db.backends.mysql')),
+            'ENGINE': config('LARAVEL_DB_ENGINE', default='django.db.backends.mysql'),
             'NAME': config('LARAVEL_DB_NAME', default='aplikasi_test_laravel'),
-            'USER': config('LARAVEL_DB_USER', default=config('DB_USER', default='root')),
+            'USER': config('LARAVEL_DB_USER', default='root'),
             'PASSWORD': config('LARAVEL_DB_PASSWORD', default=config('DB_PASSWORD')),
-            'HOST': config('LARAVEL_DB_HOST', default=config('DB_HOST', default='mysql-main')),
-            'PORT': config('LARAVEL_DB_PORT', default=config('DB_PORT', default=3306), cast=int),
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            },
+            'HOST': config('LARAVEL_DB_HOST', default='mysql-main'),
+            'PORT': config('LARAVEL_DB_PORT', default=3306, cast=int),
         },
         # ESIMPEG Source Database Connection (For User Import)
-        # Uses separate connection to read users from ESIMPEG database
+        # Connects to existing ESIMPEG MySQL database
         'esimpeg_source': {
-            'ENGINE': config('ESIMPEG_SOURCE_DB_ENGINE', default=config('DB_ENGINE', default='django.db.backends.mysql')),
+            'ENGINE': config('ESIMPEG_SOURCE_DB_ENGINE', default='django.db.backends.mysql'),
             'NAME': config('ESIMPEG_SOURCE_DB_NAME', default='esim_pegawai'),
-            'USER': config('ESIMPEG_SOURCE_DB_USER', default=config('DB_USER', default='root')),
+            'USER': config('ESIMPEG_SOURCE_DB_USER', default='root'),
             'PASSWORD': config('ESIMPEG_SOURCE_DB_PASSWORD', default=config('DB_PASSWORD')),
-            'HOST': config('ESIMPEG_SOURCE_DB_HOST', default=config('DB_HOST', default='mysql-main')),
-            'PORT': config('ESIMPEG_SOURCE_DB_PORT', default=config('DB_PORT', default=3306), cast=int),
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            },
+            'HOST': config('ESIMPEG_SOURCE_DB_HOST', default='mysql-main'),
+            'PORT': config('ESIMPEG_SOURCE_DB_PORT', default=3306, cast=int),
         },
     }
 

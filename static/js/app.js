@@ -412,6 +412,25 @@ const SESSION_CONFIG = {
     WARNING_TIME: 300000   // Show warning 5 minutes before timeout (5 * 60 * 1000)
 };
 
+try {
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            const raw = sessionStorage.getItem('__esimpeg_toast_next__');
+            if (!raw) return;
+            sessionStorage.removeItem('__esimpeg_toast_next__');
+            const data = JSON.parse(raw);
+            if (!data) return;
+            const msg = data.message;
+            const type = data.type || 'success';
+            if (msg && typeof window.showToast === 'function') {
+                window.showToast(msg, type);
+            }
+        } catch (_) {
+            try { sessionStorage.removeItem('__esimpeg_toast_next__'); } catch (_) {}
+        }
+    });
+} catch (_) {}
+
 // Track user activity
 let lastActivityTime = Date.now();
 let inactivityWarningShown = false;

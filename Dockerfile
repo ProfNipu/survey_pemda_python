@@ -18,9 +18,9 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        default-mysql-client \
+        postgresql-client \
         build-essential \
-        libmariadb-dev \
+        libpq-dev \
         pkg-config \
         gettext \
         curl \

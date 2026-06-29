@@ -1,0 +1,329 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Laporan Survey 360{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.tailwindcss.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+<style>
+.tab-link.active {
+    border-bottom: 2px solid #2563EB;
+    color: #2563EB;
+    font-weight: 600;
+}
+.modal-backdrop {
+    background-color: rgba(0,0,0,0.5);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-6">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl p-6 text-white shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm font-medium">Total Survey 360</p>
+                    <p class="text-3xl font-bold mt-1">{{ total_survey }}</p>
+                </div>
+                <i class="fas fa-sync-alt text-4xl text-blue-300"></i>
+            </div>
+        </div>
+        <div class="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl p-6 text-white shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-emerald-100 text-sm font-medium">Tahun {{ current_year }}</p>
+                    <p class="text-3xl font-bold mt-1">{{ tahun_ini }}</p>
+                </div>
+                <i class="fas fa-calendar-check text-4xl text-emerald-300"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="border-b border-gray-200">
+            <nav class="flex">
+                <button class="tab-link active px-6 py-4 text-sm font-medium text-gray-500 hover:text-blue-600 focus:outline-none" data-tab="export">
+                    <i class="fas fa-download mr-2"></i>Export Data
+                </button>
+                <button class="tab-link px-6 py-4 text-sm font-medium text-gray-500 hover:text-blue-600 focus:outline-none" data-tab="unitkerja">
+                    <i class="fas fa-building mr-2"></i>Daftar Unit Kerja
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab: Export Data -->
+        <div id="tab-export" class="tab-content p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Export Data Survey 360</h2>
+            <form id="exportForm" action="{% url 'survey:survey360_download_excel' %}" method="GET" class="space-y-4">
+                <div class="flex items-end gap-4">
+                    <div class="flex-1 max-w-xs">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Filter Tahun</label>
+                        <select name="tahun" class="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Semua Tahun</option>
+                            {% for year in ""|ljust:"10" %}
+                            <option value="{{ forloop.counter|add:2016 }}" {% if forloop.counter|add:2016 == current_year %}selected{% endif %}>{{ forloop.counter|add:2016 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" id="btnDownload" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-lg transition-colors inline-flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Download Excel</span>
+                        <i class="fas fa-spinner fa-spin ml-2 hidden" id="spinnerDownload"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4">
+                <div class="flex">
+                    <i class="fas fa-info-circle text-purple-600 text-xl mt-1 mr-3"></i>
+                    <div>
+                        <p class="text-sm text-purple-900 font-medium">Informasi Export Data</p>
+                        <ul class="text-sm text-purple-700 mt-1 space-y-1">
+                            <li><i class="fas fa-check-circle mr-1 text-purple-500"></i>Data yang diexport hanya survey dengan status <strong>Selesai</strong></li>
+                            <li><i class="fas fa-check-circle mr-1 text-purple-500"></i>Data diurutkan berdasarkan <strong>NIP Pegawai Dinilai</strong> (ascending)</li>
+                            <li><i class="fas fa-check-circle mr-1 text-purple-500"></i>Format file: <strong>Excel (.xlsx)</strong></li>
+                            <li><i class="fas fa-check-circle mr-1 text-purple-500"></i>Nama file: <strong>Survey360_Export_TahunBulanTanggal.xlsx</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Daftar Unit Kerja -->
+        <div id="tab-unitkerja" class="tab-content p-6 hidden">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Daftar Unit Kerja</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="unitKerjaTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Unit Kerja</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Jumlah Pegawai</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Submit</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Belum Submit</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for unit in unit_kerja_list %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">{{ forloop.counter }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ unit.nama }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">{{ unit.total }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{{ unit.submitted }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{{ unit.draft }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                <button onclick="showDetailModal('{{ unit.nama|escapejs }}')"
+                                        class="text-blue-600 hover:text-blue-800 text-sm font-medium unit-detail-btn" data-opd="{{ unit.nama|escapejs }}">
+                                    <i class="fas fa-eye mr-1"></i>Detail
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-8 text-center text-gray-500">Belum ada data survey 360.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detailModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true">
+    <div class="modal-backdrop fixed inset-0"></div>
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="relative bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-auto">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-t-xl px-6 py-4 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-semibold text-white" id="modalTitle">Detail Unit Kerja</h3>
+                    <p class="text-blue-200 text-sm mt-1" id="modalSummary">Memuat data...</p>
+                </div>
+                <button onclick="closeDetailModal()" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 rounded-lg p-4 text-center">
+                        <p class="text-2xl font-bold text-blue-600" id="detailTotal">0</p>
+                        <p class="text-sm text-blue-800">Total Pegawai</p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4 text-center">
+                        <p class="text-2xl font-bold text-green-600" id="detailSubmitted">0</p>
+                        <p class="text-sm text-green-800">Sudah Submit</p>
+                    </div>
+                    <div class="bg-yellow-50 rounded-lg p-4 text-center">
+                        <p class="text-2xl font-bold text-yellow-600" id="detailDraft">0</p>
+                        <p class="text-sm text-yellow-800">Belum Submit</p>
+                    </div>
+                </div>
+                <!-- Detail Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="detailTable">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">NIP</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peran</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tgl Submit</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="detailTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.tailwindcss.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script id="unitKerjaData" type="application/json">{{ unit_kerja_json|safe }}</script>
+<script>
+var unitKerjaData = JSON.parse(document.getElementById('unitKerjaData').textContent);
+
+$(document).ready(function() {
+    // Tab switching
+    $('.tab-link').on('click', function() {
+        $('.tab-link').removeClass('active');
+        $(this).addClass('active');
+        $('.tab-content').addClass('hidden');
+        $('#tab-' + $(this).data('tab')).removeClass('hidden');
+    });
+
+    // Unit Kerja DataTable
+    {% if unit_kerja_list %}
+    $('#unitKerjaTable').DataTable({
+        "pageLength": 10,
+        "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Semua"]],
+        "searching": true,
+        "ordering": true,
+        "info": true,
+        "paging": true,
+        "responsive": true,
+        "language": {
+            "search": "Cari:",
+            "lengthMenu": "Tampilkan _MENU_ data per halaman",
+            "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+            "infoEmpty": "Menampilkan 0 sampai 0 dari 0 data",
+            "paginate": { "first": "Pertama", "last": "Terakhir", "next": "Selanjutnya", "previous": "Sebelumnya" },
+            "emptyTable": "Tidak ada data yang tersedia"
+        },
+        "order": [[1, "asc"]]
+    });
+    {% endif %}
+
+    // Download spinner
+    $('#exportForm').on('submit', function() {
+        $('#btnDownload').prop('disabled', true);
+        $('#btnDownload span').text('Mengunduh...');
+        $('#spinnerDownload').removeClass('hidden');
+    });
+
+    // Reset confirmation via SweetAlert
+    $(document).on('click', '.btn-reset', function(e) {
+        e.preventDefault();
+        var form = $(this).closest('form');
+        var nip = $(this).data('nip') || 'Pegawai';
+        Swal.fire({
+            title: 'Reset Survey?',
+            html: `Survey untuk <strong>${nip}</strong> akan direset ke draft.<br>Data penilaian akan dikembalikan ke status draft.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EAB308',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Ya, Reset!',
+            cancelButtonText: 'Batal'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                form[0].submit();
+            }
+        });
+    });
+});
+
+// Modal functions
+function showDetailModal(namaOpd) {
+    var unit = unitKerjaData.find(function(u) { return u.nama === namaOpd; });
+    if (!unit) {
+        Swal.fire({ icon: 'error', title: 'Data Tidak Ditemukan', text: 'Unit kerja ' + namaOpd + ' tidak ditemukan.' });
+        return;
+    }
+    var respondens = unit.respondens || [];
+
+    document.getElementById('modalTitle').textContent = 'Unit Kerja: ' + namaOpd;
+
+    var total = respondens.length;
+    var submitted = respondens.filter(function(r) { return r.statusData === 'submitted'; }).length;
+    var draft = total - submitted;
+
+    document.getElementById('detailTotal').textContent = total;
+    document.getElementById('detailSubmitted').textContent = submitted;
+    document.getElementById('detailDraft').textContent = draft;
+    document.getElementById('modalSummary').textContent = total + ' pegawai • ' + submitted + ' submit • ' + draft + ' draft';
+
+    var resetUrlBase = '{% url "survey:survey360_reset" 0 %}'.replace('0', '');
+
+    var tbody = document.getElementById('detailTableBody');
+    tbody.innerHTML = '';
+    if (respondens.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Tidak ada data pegawai</td></tr>';
+    } else {
+        respondens.forEach(function(r, i) {
+            var peranLabel = '';
+            if (r.peranPenilai === '10') peranLabel = 'Bawahan';
+            else if (r.peranPenilai === '20') peranLabel = 'Sebaya';
+            else if (r.peranPenilai === '30') peranLabel = 'Atasan';
+            else peranLabel = r.peranPenilai;
+            var statusIcon = r.statusData === 'submitted' ? 'fa-check-circle text-green-600' : 'fa-clock text-yellow-600';
+            var tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-50';
+            tr.innerHTML = `
+                <td class="px-4 py-3 whitespace-nowrap text-sm">${i + 1}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">${r.nip_pegawaiDinilai || '-'}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm">${r.nama_pegawai || '-'}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm">${peranLabel}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                    <i class="fas ${statusIcon} mr-1"></i>
+                    ${r.updated_at || '-'}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
+                    <form method="POST" action="${resetUrlBase}${r.id}/" style="display:inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-reset text-yellow-600 hover:text-yellow-800 text-sm" data-nip="${r.nip_pegawaiDinilai || ''}">
+                            <i class="fas fa-undo mr-1"></i>Reset
+                        </button>
+                    </form>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+    document.getElementById('detailModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDetailModal() {
+    document.getElementById('detailModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+</script>
+{% endblock %}

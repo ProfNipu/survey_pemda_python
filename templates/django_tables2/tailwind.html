@@ -1,4 +1,5 @@
 {% load django_tables2 %}
+{% with hx_target=table.hx_target|default:'#table-content' %}{% with hx_table=table.prefix|default:'' %}
 
 {# Per-Page Selector with Column Visibility - Responsive #}
 <div class="mb-3 space-y-3">
@@ -298,11 +299,12 @@ function changePerPage(perPage) {
     const url = new URL(window.location.href);
     url.searchParams.set('per_page', perPage);
     url.searchParams.set('page', '1'); // Reset to page 1
+    {% if hx_table %}url.searchParams.set('hx-table', '{{ hx_table }}');{% endif %}
     
     // Use HTMX if available, otherwise regular navigation
     if (typeof htmx !== 'undefined') {
-        htmx.ajax('GET', url.toString(), {
-            target: '#table-content',
+            htmx.ajax('GET', url.toString(), {
+            target: '{{ hx_target }}',
             swap: 'outerHTML',
             indicator: '#table-loading-overlay'
         });
@@ -313,14 +315,14 @@ function changePerPage(perPage) {
 </script>
 
 <div id="dt2-tailwind-wrapper" class="overflow-x-auto">
-    <div class="w-full min-w-[1100px]">
+    <div class="w-full">
         <table {{ table.attrs.as_html }}>
         <thead {{ table.attrs.thead.as_html }}>
             <tr>
             {% for column in table.columns %}
                 <th {{ column.attrs.th.as_html }}>
                     {% if column.orderable %}
-                        <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}" hx-get="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}" hx-target="#table-content" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay" class="group inline-flex items-center gap-2 hover:text-gray-700">
+                        <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}" hx-get="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}&hx-table={{ hx_table }}" hx-target="{{ hx_target }}" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay" class="group inline-flex items-center gap-2 hover:text-gray-700">
                             {{ column.header }}
                             {% if column.is_ordered %}
                                 {% if column.order_by_alias.is_descending %}
@@ -391,7 +393,7 @@ function changePerPage(perPage) {
     <div class="flex justify-center overflow-x-auto" style="display:flex;justify-content:center;overflow-x:auto;">
             <nav class="flex items-center gap-1 sm:gap-2" aria-label="Pagination" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
                 {% if table.page.has_previous %}
-                    <a href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}" hx-get="{% querystring table.prefixed_page_field=table.page.previous_page_number %}" hx-target="#table-content" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
+                    <a href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}" hx-get="{% querystring table.prefixed_page_field=table.page.previous_page_number %}&hx-table={{ hx_table }}" hx-target="{{ hx_target }}" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
                        class="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50" style="display:inline-flex;align-items:center;">
                         <i class="fas fa-chevron-left"></i>
                         <span class="hidden sm:inline">Sebelumnya</span>
@@ -409,12 +411,12 @@ function changePerPage(perPage) {
                             {{ page_num }}
                         </span>
                     {% elif page_num > table.page.number|add:'-2' and page_num < table.page.number|add:'2' %}
-                        <a href="{% querystring table.prefixed_page_field=page_num %}" hx-get="{% querystring table.prefixed_page_field=page_num %}" hx-target="#table-content" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
+                        <a href="{% querystring table.prefixed_page_field=page_num %}" hx-get="{% querystring table.prefixed_page_field=page_num %}&hx-table={{ hx_table }}" hx-target="{{ hx_target }}" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
                            class="inline-flex items-center px-2 sm:px-4 py-1.5 sm:py-2 rounded-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300" style="display:inline-flex;align-items:center;">
                             {{ page_num }}
                         </a>
                     {% elif page_num == 1 or page_num == table.page.paginator.num_pages %}
-                        <a href="{% querystring table.prefixed_page_field=page_num %}" hx-get="{% querystring table.prefixed_page_field=page_num %}" hx-target="#table-content" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
+                        <a href="{% querystring table.prefixed_page_field=page_num %}" hx-get="{% querystring table.prefixed_page_field=page_num %}&hx-table={{ hx_table }}" hx-target="{{ hx_target }}" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
                            class="hidden sm:inline-flex items-center px-2 sm:px-4 py-1.5 sm:py-2 rounded-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300" style="display:inline-flex;align-items:center;">
                             {{ page_num }}
                         </a>
@@ -426,7 +428,7 @@ function changePerPage(perPage) {
                 {% endfor %}
                 
                 {% if table.page.has_next %}
-                    <a href="{% querystring table.prefixed_page_field=table.page.next_page_number %}" hx-get="{% querystring table.prefixed_page_field=table.page.next_page_number %}" hx-target="#table-content" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
+                    <a href="{% querystring table.prefixed_page_field=table.page.next_page_number %}" hx-get="{% querystring table.prefixed_page_field=table.page.next_page_number %}&hx-table={{ hx_table }}" hx-target="{{ hx_target }}" hx-swap="outerHTML" hx-push-url="false" hx-indicator="#table-loading-overlay"
                        class="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50" style="display:inline-flex;align-items:center;">
                         <span class="hidden sm:inline">Selanjutnya</span>
                         <i class="fas fa-chevron-right"></i>
@@ -488,11 +490,12 @@ function jumpToPage(maxPages) {
     // Build URL with page parameter
     const url = new URL(window.location.href);
     url.searchParams.set('page', pageNum);
+    {% if hx_table %}url.searchParams.set('hx-table', '{{ hx_table }}');{% endif %}
     
     // Use HTMX if available, otherwise regular navigation
     if (typeof htmx !== 'undefined') {
-        htmx.ajax('GET', url.toString(), {
-            target: '#table-content',
+            htmx.ajax('GET', url.toString(), {
+            target: '{{ hx_target }}',
             swap: 'outerHTML',
             indicator: '#table-loading-overlay'
         });
@@ -657,3 +660,4 @@ function toggleColumn(columnIndex, visible) {
 }
 </style>
 {% endif %}
+{% endwith %}{% endwith %}
